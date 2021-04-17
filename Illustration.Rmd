@@ -1,0 +1,56 @@
+---
+title: "Illustration"
+author: "Wenhao Gou | wg2364"
+date: "4/17/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Re-state the question:
+
+Climate researchers are interested in modeling the hurricane trajectories to forcase the windspeed. Let $t$ be time (in hours) since a hurricane began, and For each hurrican $i$, we denote $Y_{i}(t)$ be the wind speed of the $i$th hurrican at time $t$. The following Baysian model was suggested.  
+
+
+$$Y_{i}(t+6) =\beta_{0,i}+x_{i,1}\beta_{1,i} +
+x_{i,2} \beta_{2,i} + x_{i,3}\beta_{3,i} +\beta_{4,i,j}Y_{i,j}(t) +  +\beta_{5,i,j}\Delta_{i,1}(t)+\beta_{6,i,j}\Delta_{i,2}(t)+ +\beta_{7,i}\Delta_{i,3} + \epsilon_{i}(t)$$   
+where $x_{i,1}$ is the month of year when the hurricane started, $x_{i,2}$ is the calendar year of the hurricane, and $x_{i,3}$ is the type of hurricane, $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ is the change of latitude longitude, and wind speed between $t-6$ and $t$, and $\epsilon_{i,t}$ follows a  normal distributions with mean zero and variance $\sigma^2$, independent across $t$.
+
+
+In the model,  $\boldsymbol{\beta}_{i} =  (\beta_{0,i},\beta_{1,i},...,\beta_{7,i})$ are the random coefficients associated the $i$th hurricane, we assume that 
+
+$$\boldsymbol{\beta}_{i} \sim N(\boldsymbol{\beta}, \boldsymbol{\Sigma})$$
+follows a multivariate normal distributions with mean $\boldsymbol{\beta}$ and covariance matrix $\Sigma$.
+
+
+\paragraph{Prior distributions}
+
+
+We assume the following non-informative or weak prior distributions for $\sigma^2$, $\boldsymbol{\beta}$ and $\Sigma$.
+$$P(\sigma^2) \propto \frac{1}{\sigma^2};\quad P(\boldsymbol{\beta})\propto 1;\quad P(\Sigma^{-1}) \propto 
+|\Sigma|^{-(d+1)} \exp(-\frac{1}{2}\Sigma^{-1})$$
+d is dimension of $\beta$.
+
+
+# Find out the posterial distribution:
+
+It is easy to see that:
+
+$$f(Y_{i}(t+6)|\boldsymbol{\beta}, \sigma) \sim N(\mu,\sigma^2)$$
+Where $\mu$ is the linear combination of all coefficients.
+
+Our objective is to derive $f(\boldsymbol{\beta}, \sigma|Y_{i}(t+6))$
+
+\begin{align*}
+f(\boldsymbol{\beta},\boldsymbol{\beta_i}, \boldsymbol{\Sigma}^{-1},\sigma^2|Y_{i}(t+6)) &\propto f(Y_{i}(t+6)|\boldsymbol{\beta_i}, \sigma^2) f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1})f(\boldsymbol{\beta})f(\boldsymbol{\Sigma}^{-1})f(\sigma^2)\\
+f(Y_{i}(t+6)|\boldsymbol{\beta_i}, \sigma)&\propto \prod_{i=1}^{N} \frac{1}{\sigma}\exp\{-\frac{(x_i - \mu_i)^2}{2\sigma^2}\} 
+\;\; \text{,where } \mu_i = X^T_i\boldsymbol{\beta_i} \\
+f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1}) &\propto \frac{1}{\sqrt{|\boldsymbol{\Sigma^{-1}}|}} \exp \{ -\frac{1}{2} (\boldsymbol{\beta_i} - \boldsymbol{\beta})^T\boldsymbol{\Sigma}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\} \\
+f(\sigma^2) &\propto \frac{1}{\sigma^2}\\
+f(\boldsymbol{\beta}) &\propto 1 \\
+f(\boldsymbol{\Sigma}^{-1}) &\propto |\Sigma|^{-8} \exp(-\frac{1}{2}\Sigma^{-1})
+\end{align*}
+
+
