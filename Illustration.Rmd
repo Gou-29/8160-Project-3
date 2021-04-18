@@ -66,37 +66,48 @@ df = data %>%
                                            "September", "October", "November", "December")),
          Month = as.numeric(Month),
          Nature = as.numeric(as.factor(Nature)))
-id = table(data$ID) %>% as.data.frame()
+id = df %>% group_by(Season, ID) %>% summarize(n = n())
 
-upd.bi = function(df, epis, beta, sigma){
+upd.bi = function(df, epis, beta, sigma, n){
+  sd = solve(epis + diag(n*sigma, 8, 8)) # posterior distribution for beta.i 
+  mu = sd %*% (epis %*% beta + sigma*sum(df %*% beta)) # posterior distribution for beta.i
+  return(list(sd = sd, mu = mu))}
+mc = function(df, a, b, ini.sigma, niter = 2){
   delta1 = c(0, sapply(2:nrow(df), function(i){df[i,7] - df[i-1, 7]}))
   delta2 = c(0, sapply(2:nrow(df), function(i){df[i,8] - df[i-1, 8]}))
   delta3 = c(0, sapply(2:nrow(df), function(i){df[i,9] - df[i-1, 9]}))
-  dt = cbind(df[,1], df[,4], df[,3], df[,5], df[,9], delta1, delta2, delta3)
-  n = nrow(df)
-  sd = solve(epis + diag(n*sigma^2, 8, 8)) # posterior distribution for beta.i 
-  mu = sd %*% (epis %*% beta + sigma*sum(df %*% beta)) # posterior distribution for beta.i
-  return(list(sd = sd, mu = mu))}
-mc = function(df, a, b, ini.sigma, niter = 10000){
-  n = nrow(df)
+  dt = cbind(df[,1], df[,4], df[,3], df[,5], df[,9], delta1, delta2, delta3) # final dataset for each individual grp
+  n = nrow(dt)
   epis = vector("list", niter)
   beta = matrix(NA, nrow = 8, ncol = niter)
   beta.i = matrix(NA, nrow = 8, ncol = niter)
   sigma = rep(NA, niter)
-  epis[[1]] = cor(matrix(1/extraDistr::rinvgamma(64, alpha = a, beta = b), 8, 8)) # epsilon^-1 ~ inverse.gamma
-  beta[,1] = rep(1, 8)
-  sigma[1] = ini.sigma
-  beta.i[,1] = mvrnorm(1, mu = upd.bi(df, epis[[1]], beta[,1], sigma[1])$mu, 
-  Sigma = upd.bi(df, epis[[1]], beta[,1], sigma[1])$sd)
+  epis[[1]] = cor(matrix(1/extraDistr::rinvgamma(64, alpha = a, beta = b), 8, 8)) # initial epsilon^-1 ~ inverse.gamma (8x8)
+  beta[,1] = rep(1, 8) # initial beta (8x1)
+  sigma[1] = ini.sigma # initial sigma 
+  beta.i[,1] = mvrnorm(1, mu = upd.bi(dt, epis[[1]], beta[,1], sigma[1], n)$mu, 
+  Sigma = upd.bi(dt, epis[[1]], beta[,1], sigma[1], n)$sd) 
+  # mvrnorm generates the beta_i for each subgroup(8x1) - beta.i ~ N(beta, epsilon)
   for (i in 2:niter){
-    epis[[i]] = rinvwishart(n + a, diag(sum((beta.i[,i-1] - beta[,i-1])^2), 8, 8) + 0.001)
-    beta[,i] = mvrnorm(1, mu = n*beta.i[,i-1], Sigma = n*epis[[i]])
-    sigma[i] = extraDistr::rinvgamma(1, alpha = n + 1, sum(df %*% beta.i[,i-1]))
-    beta.i[,i] = mvrnorm(1, mu = upd.bi(df, epis[[i]], beta[,i], sigma[i])$mu, 
-  Sigma = upd.bi(df, epis[[i]], beta[,i], sigma[i])$sd)}
+    epis[[i]] = rinvwishart(n + a, diag(sum((beta.i[,i-1] - beta[,i-1])^2), 8, 8) + 0.001) 
+    # use beta.i and beta update epsilon, pi(epsilon) ~ Inviwishart(n + a, beta_variance + b)!!!!!!!!!!!!!!!!(May change back to inverse gamma?????)
+    beta[,i] = mvrnorm(1, mu = n*beta.i[,i-1], Sigma = n*epis[[i]])  # beta ~ N(n*beta_i, n*epsilon)
+    sigma[i] = extraDistr::rinvgamma(1, alpha = n + 1, sum((dt[,5] - dt %*% beta.i[,i-1])^2)) 
+    # sigma ~ inverse.gamma(n + 1, sample residual of Yi)
+    beta.i[,i] = mvrnorm(1, mu = upd.bi(dt, epis[[i]], beta[,i], sigma[i], n)$mu, 
+  Sigma = upd.bi(dt, epis[[i]], beta[,i], sigma[i], n)$sd)}
   return(list(beta.i =  beta.i))}
 
-
+whole.mc = function(df, id){
+  sub.grp = vector("list", nrow(id))
+  id.n = c(0, id$n)
+  for (i in 1:length(sub.grp)){
+    sub.grp[[i]] = df[(id.n[i]+1):id.n[i+1],]}
+  ith.mc = vector("list", length(sub.grp))
+  for (ii in 1:length(ith.mc)){
+    ith.mc[[ii]] = sapply(1: length(sub.grp), 
+                          function(iii){mc(sub.grp[[iii]],a = 0.001, b = 0.001, ini.sigma = 1)})}
+  return(ith.mc)}
  
 ```
 
