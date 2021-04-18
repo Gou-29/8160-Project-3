@@ -7,6 +7,11 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(extraDistr)
+library(dplyr)
+library(MASS)
+library(LaplacesDemon)
 ```
 
 # Re-state the question:
@@ -52,5 +57,55 @@ f(\sigma^2) &\propto \frac{1}{\sigma^2}\\
 f(\boldsymbol{\beta}) &\propto 1 \\
 f(\boldsymbol{\Sigma}^{-1}) &\propto |\Sigma|^{-8} \exp(-\frac{1}{2}\Sigma^{-1})
 \end{align*}
+
+```{r}
+
+data = read.csv("hurrican356.csv")
+df = data %>%
+  mutate(Month = factor(Month, levels = c("January", "April", "May", "June", "July", "August",
+                                           "September", "October", "November", "December")),
+         Month = as.numeric(Month),
+         Nature = as.numeric(as.factor(Nature)))
+id = table(data$ID) %>% as.data.frame()
+
+upd.bi = function(df, epis, beta, sigma){
+  delta1 = c(0, sapply(2:nrow(df), function(i){df[i,7] - df[i-1, 7]}))
+  delta2 = c(0, sapply(2:nrow(df), function(i){df[i,8] - df[i-1, 8]}))
+  delta3 = c(0, sapply(2:nrow(df), function(i){df[i,9] - df[i-1, 9]}))
+  dt = cbind(df[,1], df[,4], df[,3], df[,5], df[,9], delta1, delta2, delta3)
+  n = nrow(df)
+  sd = solve(epis + diag(n*sigma^2, 8, 8)) # posterior distribution for beta.i 
+  mu = sd %*% (epis %*% beta + sigma*sum(df %*% beta)) # posterior distribution for beta.i
+  return(list(sd = sd, mu = mu))}
+mc = function(df, a, b, ini.sigma, niter = 10000){
+  n = nrow(df)
+  epis = vector("list", niter)
+  beta = matrix(NA, nrow = 8, ncol = niter)
+  beta.i = matrix(NA, nrow = 8, ncol = niter)
+  sigma = rep(NA, niter)
+  epis[[1]] = cor(matrix(1/extraDistr::rinvgamma(64, alpha = a, beta = b), 8, 8)) # epsilon^-1 ~ inverse.gamma
+  beta[,1] = rep(1, 8)
+  sigma[1] = ini.sigma
+  beta.i[,1] = mvrnorm(1, mu = upd.bi(df, epis[[1]], beta[,1], sigma[1])$mu, 
+  Sigma = upd.bi(df, epis[[1]], beta[,1], sigma[1])$sd)
+  for (i in 2:niter){
+    epis[[i]] = rinvwishart(n + a, diag(sum((beta.i[,i-1] - beta[,i-1])^2), 8, 8) + 0.001)
+    beta[,i] = mvrnorm(1, mu = n*beta.i[,i-1], Sigma = n*epis[[i]])
+    sigma[i] = extraDistr::rinvgamma(1, alpha = n + 1, sum(df %*% beta.i[,i-1]))
+    beta.i[,i] = mvrnorm(1, mu = upd.bi(df, epis[[i]], beta[,i], sigma[i])$mu, 
+  Sigma = upd.bi(df, epis[[i]], beta[,i], sigma[i])$sd)}
+  return(list(beta.i =  beta.i))}
+
+
+ 
+```
+
+
+
+
+
+
+
+
 
 
