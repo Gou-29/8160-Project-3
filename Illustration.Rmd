@@ -16,7 +16,7 @@ library(LaplacesDemon)
 
 # Re-state the question:
 
-Climate researchers are interested in modeling the hurricane trajectories to forcase the windspeed. Let $t$ be time (in hours) since a hurricane began, and For each hurrican $i$, we denote $Y_{i}(t)$ be the wind speed of the $i$th hurrican at time $t$. The following Baysian model was suggested.  
+Climate researchers are interested in modeling the hurricane trajectories to forecast the wind speed. Let $t$ be time (in hours) since a hurricane began, and For each hurricane $i$, we denote $Y_{i}(t)$ be the wind speed of the $i$th hurricane at time $t$. The following Bayesian model was suggested.  
 
 
 $$Y_{i}(t+6) =\beta_{0,i}+x_{i,1}\beta_{1,i} +
@@ -59,7 +59,6 @@ f(\boldsymbol{\Sigma}^{-1}) &\propto |\Sigma|^{-8} \exp(-\frac{1}{2}\Sigma^{-1})
 \end{align*}
 
 ```{r}
-
 data = read.csv("hurrican356.csv")
 df = data %>%
   mutate(Month = factor(Month, levels = c("January", "April", "May", "June", "July", "August",
