@@ -1,5 +1,5 @@
 ---
-title: 'Project 4: Baysian modeling of hurrican trajectories'
+title: 'Project 3: Bayesian modeling of hurricane trajectories'
 output:
   html_document:
     df_print: paged
@@ -8,25 +8,25 @@ output:
 ---
 
 
-# Hurrican Data
-hurrican356.csv collected the track data of 356 hurricanes in  the North Atlantic area since 1989. For all the storms, their location (longitude \& latitude) and maximum wind speed were recorded every 6 hours. The data includes the following variables 
+# Hurricane Data
+hurricane356.csv collected the track data of 356 hurricanes in the North Atlantic area since 1989. For all the storms, their location (longitude \& latitude) and maximum wind speed were recorded every 6 hours. The data includes the following variables 
 
-1. **ID**:  ID of the hurricans
+1. **ID**: ID of the hurricanes
 2. **Season**: In which \textbf{year} the hurricane occurred 
 3. **Month**: In which \textbf{month} the hurricane occurred 
-4. **Nature**:  Nature of the hurricane 
+4. **Nature**: Nature of the hurricane 
   + ET: Extra Tropical
   + DS: Disturbance
   + NR: Not Rated
   + SS: Sub Tropical
   + TS: Tropical Storm
 5. **time**: dates and time of the record  
-6. **Latitude** and **Longitude**:  The location of  a hurricane check point 
-7. **Wind.kt**  Maximum wind speed (in Knot) at each check point 
+6. **Latitude** and **Longitude**: The location of a hurricane check point 
+7. **Wind.kt** Maximum wind speed (in Knot) at each check point 
 
 
 
-##  Load  and explore the hurrican data through visulaizations
+## Load and explore the hurricane data through visulaizations
 
 ```{r eval=FALSE, include=TRUE}
 library(ggplot2)
@@ -37,7 +37,7 @@ library(data.table)
 dt <- as.data.table(dt)
 summary(dt)
 ```
-Overlay the hurrican data in the world map
+Overlay the hurricane data in the world map
 ```{r eval=FALSE, include=TRUE}
 library(maps)
 map <- ggplot(data = dt, aes(x = Longitude, y = Latitude)) + 
@@ -65,7 +65,7 @@ seasonrange <- paste(range(dt[, "Season"]), collapse=" - ")
 map + ggtitle(paste("Atlantic named Windstorm Trajectories (", 
                      seasonrange, ")\n")) 
 ```
-Show hurricance tracks by month
+Show hurricane tracks by month
 ```{r eval=FALSE, include=TRUE}
 mapMonth <- map + facet_wrap(~ Month) +
   ggtitle(paste("Atlantic named Windstorm Trajectories by Month (", 
@@ -77,16 +77,16 @@ mapMonth
 
 # A Hierarchical Bayesian model for hurricane trajectories. 
 
-Climate researchers are interested in modeling the hurricane trajectories to forcase the windspeed. Let $t$ be time (in hours) since a hurricane began, and For each hurrican $i$, we denote $Y_{i}(t)$ be the wind speed of the $i$th hurrican at time $t$. The following Baysian model was suggested.  
+Climate researchers are interested in modeling the hurricane trajectories to forecast the wind speed. Let $t$ be time (in hours) since a hurricane began, and For each hurricane $i$, we denote $Y_{i}(t)$ be the wind speed of the $i$th hurricane at time $t$. The following Bayesian model was suggested.  
 
 
 $$Y_{i}(t+6) =\beta_{0,i}+x_{i,1}\beta_{1,i} +
-x_{i,2} \beta_{2,i} + x_{i,3}\beta_{3,i} +\beta_{4,i}Y_{i}(t)  +\beta_{5,i}\Delta_{i,1}(t)+ \beta_{6,i}\Delta_{i,2}(t)+ +\beta_{7,i}\Delta_{i,3} + \epsilon_{i}(t)$$
+x_{i,2} \beta_{2,i} + x_{i,3}\beta_{3,i} +\beta_{4,i}Y_{i}(t) +\beta_{5,i}\Delta_{i,1}(t)+ \beta_{6,i}\Delta_{i,2}(t)+ +\beta_{7,i}\Delta_{i,3} + \epsilon_{i}(t)$$
 
-where $x_{i,1}$ is the month of year when the hurricane started, $x_{i,2}$ is the calendar year of the hurricane, and $x_{i,3}$ is the type of hurricane, $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ is the change of latitude longitude, and wind speed between $t-6$ and $t$, and $\epsilon_{i,t}$ follows a  normal distributions with mean zero and variance $\sigma^2$, independent across $t$.
+where $x_{i,1}$ is the month of year when the hurricane started, $x_{i,2}$ is the calendar year of the hurricane, and $x_{i,3}$ is the type of hurricane, $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ is the change of latitude longitude, and wind speed between $t-6$ and $t$, and $\epsilon_{i,t}$ follows a normal distributions with mean zero and variance $\sigma^2$, independent across $t$.
 
 
-In the model,  $\boldsymbol{\beta}_{i} =  (\beta_{0,i},\beta_{1,i},...,\beta_{7,i})$ are the random coefficients associated the $i$th hurricane, we assume that 
+In the model, $\boldsymbol{\beta}_{i} = (\beta_{0,i},\beta_{1,i},...,\beta_{7,i})$ are the random coefficients associated the $i$th hurricane, we assume that 
 
 $$\boldsymbol{\beta}_{i} \sim N(\boldsymbol{\beta}, \boldsymbol{\Sigma})$$
 follows a multivariate normal distributions with mean $\boldsymbol{\beta}$ and covariance matrix $\Sigma$.
@@ -102,9 +102,9 @@ d is dimension of $\beta$.
 
 ## Design a MCMC algorithm to estiamte the posterior distributions of the model parameters, and complete the following  tasks:
 
-1. Construct their 95% credibility intervals for $\boldsymbol{\beta}$. What we learn from the models? Is there evidence support that the statement that "the hurrican wind speed has been increasing over years". 
+1. Construct their 95% credibility intervals for $\boldsymbol{\beta}$. What we learn from the models? Is there evidence support that the statement that "the hurricane wind speed has been increasing over years". 
 
 2. How well does this Bayesian model track the individual hurricanes?  
 
 
-3. Write a summary statement of  your findings and comment on the proposed baysian model.
+3. Write a summary statement of your findings and comment on the proposed Bayesian model.
