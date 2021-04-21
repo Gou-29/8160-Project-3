@@ -73,16 +73,19 @@ upd.bi = function(df, epis, beta, sigma, n){
   mu = sd %*% (epis %*% beta + sigma*sum(df %*% beta)) # posterior distribution for beta.i
   return(list(sd = sd, mu = mu))}
 mc = function(df, a, b, ini.sigma, niter = 2){
-  delta1 = c(0, sapply(2:nrow(df), function(i){df[i,7] - df[i-1, 7]}))
-  delta2 = c(0, sapply(2:nrow(df), function(i){df[i,8] - df[i-1, 8]}))
-  delta3 = c(0, sapply(2:nrow(df), function(i){df[i,9] - df[i-1, 9]}))
-  dt = cbind(df[,1], df[,4], df[,3], df[,5], df[,9], delta1, delta2, delta3) # final dataset for each individual grp
+  d.lat = sapply(2:nrow(df), function(i){df[i,7] - df[i-1, 7]})
+  d.lon = sapply(2:nrow(df), function(i){df[i,8] - df[i-1, 8]})
+  d.spd = sapply(2:nrow(df), function(i){df[i,9] - df[i-1, 9]})
+  d.yi = df[-1,9]
+  dt = cbind(d.yi, df[-1,1], df[-1,4], df[-1,3], df[-1,5], df[-nrow(df),9], d.lat, d.lon, d.spd) 
+  # final dataset for each individual grp
   n = nrow(dt)
   epis = vector("list", niter)
   beta = matrix(NA, nrow = 8, ncol = niter)
   beta.i = matrix(NA, nrow = 8, ncol = niter)
   sigma = rep(NA, niter)
-  epis[[1]] = cor(matrix(1/extraDistr::rinvgamma(64, alpha = a, beta = b), 8, 8)) # initial epsilon^-1 ~ inverse.gamma (8x8)
+  epis[[1]] = cor(matrix(1/extraDistr::rinvgamma(64, alpha = a, beta = b), 8, 8)) 
+  # initial epsilon^-1 ~ inverse.gamma(0.001, 0.001) (8x8)
   beta[,1] = rep(1, 8) # initial beta (8x1)
   sigma[1] = ini.sigma # initial sigma 
   beta.i[,1] = mvrnorm(1, mu = upd.bi(dt, epis[[1]], beta[,1], sigma[1], n)$mu, 
@@ -90,7 +93,7 @@ mc = function(df, a, b, ini.sigma, niter = 2){
   # mvrnorm generates the beta_i for each subgroup(8x1) - beta.i ~ N(beta, epsilon)
   for (i in 2:niter){
     epis[[i]] = rinvwishart(n + a, diag(sum((beta.i[,i-1] - beta[,i-1])^2), 8, 8) + 0.001) 
-    # use beta.i and beta update epsilon, pi(epsilon) ~ Inviwishart(n + a, beta_variance + b)!!!!!!!!!!!!!!!!(May change back to inverse gamma?????)
+    # use beta.i and beta update epsilon, pi(epsilon) ~ Inviwishart(n + a, beta_variance + b)!!!!!!!!(May change back to inverse gamma?????)
     beta[,i] = mvrnorm(1, mu = n*beta.i[,i-1], Sigma = n*epis[[i]])  # beta ~ N(n*beta_i, n*epsilon)
     sigma[i] = extraDistr::rinvgamma(1, alpha = n + 1, sum((dt[,5] - dt %*% beta.i[,i-1])^2)) 
     # sigma ~ inverse.gamma(n + 1, sample residual of Yi)
@@ -98,24 +101,33 @@ mc = function(df, a, b, ini.sigma, niter = 2){
   Sigma = upd.bi(dt, epis[[i]], beta[,i], sigma[i], n)$sd)}
   return(list(beta.i =  beta.i))}
 
-whole.mc = function(df, id){
+grp = function(df, id){
   sub.grp = vector("list", nrow(id))
   id.n = c(0, id$n)
   for (i in 1:length(sub.grp)){
     sub.grp[[i]] = df[(id.n[i]+1):id.n[i+1],]}
-  ith.mc = vector("list", length(sub.grp))
-  for (ii in 1:length(ith.mc)){
-    ith.mc[[ii]] = sapply(1: length(sub.grp), 
-                          function(iii){mc(sub.grp[[iii]],a = 0.001, b = 0.001, ini.sigma = 1)})}
-  return(ith.mc)}
+  return(sub.grp)}
  
 ```
 
+Posterior Distribution Inference:
 
+$Y_{it} = X_{i}\beta_{i} + \epsilon_{it}$, with $i = 1, 2, ....,n,\ t = 1, 2, .... t_i$
+1. $\beta_i|.$:
+$$Y_{it} \sim N(X_i\beta_i, \sigma^2),\ \beta_i\sim N(\beta, \Sigma^{-1})$$
+$$\pi(Y_{it}|X_i\beta_i, \sigma^2) \propto \prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-2}exp\{{-(\frac{Y_{it} - X_{i}\beta_{i})^2}{2\sigma^2}\}}$$
+$$\pi(X_i\beta_i | Y_{it}, \sigma^2) \propto \pi(Y_{it}|X_i\beta_i, \sigma^2) \cdot \pi(\beta_i)$$
+$$\propto \prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-1}\Sigma^{-1/2}exp\{{-\frac{1}{2}(Y_{it} - X_{i}\beta_{i})^T(I\sigma_i^{-2})(Y_{it} - X_{i}\beta_{i})\}} \cdot exp{\{-\frac{1}{2}(\beta_i - \beta)^T\Sigma^{-1}(\beta_i - \beta)\}}$$
+$$\propto exp{\{-\frac{1}{2}((\sigma_i^2(X_i^TX_i)^{-1}) + \Sigma^{-1})^{-1}\sum^n_{i=1}(\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))^T((\sigma_i^2(X_i^TX_i)^{-1} + \Sigma^{-1})(\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))\}}$$
+$$\beta_i \sim N(K(\Sigma^{-1}\beta + \sigma^{-2}X_i^TY_{it}), K), where\ K = (\Sigma^{-1} + (\sigma^{-2}X_i^TX_i)^{-1})^{-1}$$
+2.$\sigma^2|.$:
+$$\pi(\sigma_i^2|.) = \pi(Y_{it}|X_i\beta_i) \cdot \pi(\sigma_i^2)$$
+$$\propto \prod^n_{i=1}\prod^{t_i}_{t=1} \frac{1}{\sqrt{\sigma^2}}exp\{{-\frac{1}{2}(Y_{it} - X_{i}\beta_{i})^T(I\sigma_i^{-2})(Y_{it} - X_{i}\beta_{i})\}} \cdot \frac{1}{\sigma^2}$$
+$$\propto \sigma^{-(n-2)}\sum^n_{i=1}\sum^{ti}_{t=1}exp{\{-\frac{1}{2}(Y_{it} - X_i\beta_i)^T(Y_{it}-Xi\beta_i)\sigma^{-2}\}}$$
+$$\sigma^2 \sim InvGamma(\frac{n}{2}, SSR),\ where\ SSR = \sum^n_{i=1}\sum^{ti}_{t=1}(Y_{it} - X_i\beta_i)^T(Y_{it}- X_i\beta_i)$$
 
-
-
-
+3. $\Sigma^{-1}|.$:
+$$\pi(\Sigma^{})$$
 
 
 

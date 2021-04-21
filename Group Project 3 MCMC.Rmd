@@ -1,5 +1,5 @@
 ---
-title: 'Project 4: Baysian modeling of hurrican trajectories'
+title: "Project 4: Baysian modeling of hurrican trajectories"
 output:
   html_document:
     df_print: paged
@@ -81,8 +81,7 @@ Climate researchers are interested in modeling the hurricane trajectories to for
 
 
 $$Y_{i}(t+6) =\beta_{0,i}+x_{i,1}\beta_{1,i} +
-x_{i,2} \beta_{2,i} + x_{i,3}\beta_{3,i} +\beta_{4,i}Y_{i}(t)  +\beta_{5,i}\Delta_{i,1}(t)+ \beta_{6,i}\Delta_{i,2}(t)+ +\beta_{7,i}\Delta_{i,3} + \epsilon_{i}(t)$$
-
+x_{i,2} \beta_{2,i} + x_{i,3}\beta_{3,i} +\beta_{4,i,j}Y_{i,j}(t) +  +\beta_{5,i,j}\Delta_{i,1}(t)+ +\beta_{6,i,j}\Delta_{i,2}(t)+ +\beta_{7,i}\Delta_{i,3} + \epsilon_{i}(t)$$   
 where $x_{i,1}$ is the month of year when the hurricane started, $x_{i,2}$ is the calendar year of the hurricane, and $x_{i,3}$ is the type of hurricane, $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ is the change of latitude longitude, and wind speed between $t-6$ and $t$, and $\epsilon_{i,t}$ follows a  normal distributions with mean zero and variance $\sigma^2$, independent across $t$.
 
 
@@ -99,6 +98,7 @@ We assume the following non-informative or weak prior distributions for $\sigma^
 $$P(\sigma^2) \propto \frac{1}{\sigma^2};\quad P(\boldsymbol{\beta})\propto 1;\quad P(\Sigma^{-1}) \propto 
 |\Sigma|^{-(d+1)} \exp(-\frac{1}{2}\Sigma^{-1})$$
 d is dimension of $\beta$.
+
 
 ## Design a MCMC algorithm to estiamte the posterior distributions of the model parameters, and complete the following  tasks:
 
