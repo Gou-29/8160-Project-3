@@ -75,7 +75,7 @@ mc = function(df, a, b, ini.sigma, niter = 2){
   delta1 = c(0, sapply(2:nrow(df), function(i){df[i,7] - df[i-1, 7]}))
   delta2 = c(0, sapply(2:nrow(df), function(i){df[i,8] - df[i-1, 8]}))
   delta3 = c(0, sapply(2:nrow(df), function(i){df[i,9] - df[i-1, 9]}))
-  dt = cbind(df[,1], df[,4], df[,3], df[,5], df[,9], delta1, delta2, delta3) # final dataset for each individual grp
+  dt = cbind(df[,1], df[,4], df[,3], df[,5], df[,9], delta1, delta2, delta3) # final dataset for each individual group
   n = nrow(dt)
   epis = vector("list", niter)
   beta = matrix(NA, nrow = 8, ncol = niter)
