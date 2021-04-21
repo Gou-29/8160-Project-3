@@ -58,10 +58,6 @@ f(\boldsymbol{\beta}) &\propto 1 \\
 f(\boldsymbol{\Sigma}^{-1}) &\propto |\Sigma|^{-8} \exp(-\frac{1}{2}\Sigma^{-1})
 \end{align*}
 
-The full posterior, then, is simply the product of these three terms—the likelihood, prior, and the distribution for $\Sigma$.
-\begin{align*}
-\prod_{i=1}^{N} \frac{1}{\sigma}\exp\{-\frac{(x_i - \mu_i)^2}{2\sigma^2}\} * \frac{1}{\sqrt{|\boldsymbol{\Sigma^{-1}}|}} \exp \{ -\frac{1}{2} (\boldsymbol{\beta_i} - \boldsymbol{\beta})^T\boldsymbol{\Sigma}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\} * |\Sigma|^{-8} \exp(-\frac{1}{2}\Sigma^{-1})
-\end{align*}
 
 
 ```{r,eval=F}
@@ -78,19 +74,16 @@ upd.bi = function(df, epis, beta, sigma, n){
   mu = sd %*% (epis %*% beta + sigma*sum(df %*% beta)) # posterior distribution for beta.i
   return(list(sd = sd, mu = mu))}
 mc = function(df, a, b, ini.sigma, niter = 2){
-<<<<<<< HEAD
   d.lat = sapply(2:nrow(df), function(i){df[i,7] - df[i-1, 7]})
   d.lon = sapply(2:nrow(df), function(i){df[i,8] - df[i-1, 8]})
   d.spd = sapply(2:nrow(df), function(i){df[i,9] - df[i-1, 9]})
   d.yi = df[-1,9]
   dt = cbind(d.yi, df[-1,1], df[-1,4], df[-1,3], df[-1,5], df[-nrow(df),9], d.lat, d.lon, d.spd) 
   # final dataset for each individual grp
-=======
   delta1 = c(0, sapply(2:nrow(df), function(i){df[i,7] - df[i-1, 7]}))
   delta2 = c(0, sapply(2:nrow(df), function(i){df[i,8] - df[i-1, 8]}))
   delta3 = c(0, sapply(2:nrow(df), function(i){df[i,9] - df[i-1, 9]}))
   dt = cbind(df[,1], df[,4], df[,3], df[,5], df[,9], delta1, delta2, delta3) # final dataset for each individual group
->>>>>>> 198e79a4f5745ebd7448378ee32e24267cc86359
   n = nrow(dt)
   epis = vector("list", niter)
   beta = matrix(NA, nrow = 8, ncol = niter)

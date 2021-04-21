@@ -1,9 +1,5 @@
 ---
-<<<<<<< HEAD
-title: "Project 4: Baysian modeling of hurrican trajectories"
-=======
 title: 'Project 3: Bayesian modeling of hurricane trajectories'
->>>>>>> 198e79a4f5745ebd7448378ee32e24267cc86359
 output:
   html_document:
     df_print: paged
@@ -85,14 +81,12 @@ Climate researchers are interested in modeling the hurricane trajectories to for
 
 
 $$Y_{i}(t+6) =\beta_{0,i}+x_{i,1}\beta_{1,i} +
-<<<<<<< HEAD
 x_{i,2} \beta_{2,i} + x_{i,3}\beta_{3,i} +\beta_{4,i,j}Y_{i,j}(t) +  +\beta_{5,i,j}\Delta_{i,1}(t)+ +\beta_{6,i,j}\Delta_{i,2}(t)+ +\beta_{7,i}\Delta_{i,3} + \epsilon_{i}(t)$$   
 where $x_{i,1}$ is the month of year when the hurricane started, $x_{i,2}$ is the calendar year of the hurricane, and $x_{i,3}$ is the type of hurricane, $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ is the change of latitude longitude, and wind speed between $t-6$ and $t$, and $\epsilon_{i,t}$ follows a  normal distributions with mean zero and variance $\sigma^2$, independent across $t$.
-=======
+
 x_{i,2} \beta_{2,i} + x_{i,3}\beta_{3,i} +\beta_{4,i}Y_{i}(t) +\beta_{5,i}\Delta_{i,1}(t)+ \beta_{6,i}\Delta_{i,2}(t)+ +\beta_{7,i}\Delta_{i,3} + \epsilon_{i}(t)$$
 
 where $x_{i,1}$ is the month of year when the hurricane started, $x_{i,2}$ is the calendar year of the hurricane, and $x_{i,3}$ is the type of hurricane, $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ is the change of latitude longitude, and wind speed between $t-6$ and $t$, and $\epsilon_{i,t}$ follows a normal distributions with mean zero and variance $\sigma^2$, independent across $t$.
->>>>>>> 198e79a4f5745ebd7448378ee32e24267cc86359
 
 
 In the model, $\boldsymbol{\beta}_{i} = (\beta_{0,i},\beta_{1,i},...,\beta_{7,i})$ are the random coefficients associated the $i$th hurricane, we assume that 

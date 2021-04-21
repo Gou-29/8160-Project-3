@@ -1,0 +1,257 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Illustration},
+  pdfauthor={Wenhao Gou \textbar{} wg2364},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+
+\title{Illustration}
+\author{Wenhao Gou \textbar{} wg2364}
+\date{4/17/2021}
+
+\begin{document}
+\maketitle
+
+\hypertarget{re-state-the-question}{%
+\section{Re-state the question:}\label{re-state-the-question}}
+
+Climate researchers are interested in modeling the hurricane
+trajectories to forecast the wind speed. Let \(t\) be time (in hours)
+since a hurricane began, and For each hurricane \(i\), we denote
+\(Y_{i}(t)\) be the wind speed of the \(i\)th hurricane at time \(t\).
+The following Bayesian model was suggested.
+
+\[Y_{i}(t+6) =\beta_{0,i}+x_{i,1}\beta_{1,i} +
+x_{i,2} \beta_{2,i} + x_{i,3}\beta_{3,i} +\beta_{4,i,j}Y_{i,j}(t) +  +\beta_{5,i,j}\Delta_{i,1}(t)+\beta_{6,i,j}\Delta_{i,2}(t)+ +\beta_{7,i}\Delta_{i,3} + \epsilon_{i}(t)\]\\
+where \(x_{i,1}\) is the month of year when the hurricane started,
+\(x_{i,2}\) is the calendar year of the hurricane, and \(x_{i,3}\) is
+the type of hurricane, \(\Delta_{i,1}(t)\), \(\Delta_{i,2}(t)\) and
+\(\Delta_{i,3}(t)\) is the change of latitude longitude, and wind speed
+between \(t-6\) and \(t\), and \(\epsilon_{i,t}\) follows a normal
+distributions with mean zero and variance \(\sigma^2\), independent
+across \(t\).
+
+In the model,
+\(\boldsymbol{\beta}_{i} = (\beta_{0,i},\beta_{1,i},...,\beta_{7,i})\)
+are the random coefficients associated the \(i\)th hurricane, we assume
+that
+
+\[\boldsymbol{\beta}_{i} \sim N(\boldsymbol{\beta}, \boldsymbol{\Sigma})\]
+follows a multivariate normal distributions with mean
+\(\boldsymbol{\beta}\) and covariance matrix \(\Sigma\).
+
+\paragraph{Prior distributions}
+
+We assume the following non-informative or weak prior distributions for
+\(\sigma^2\), \(\boldsymbol{\beta}\) and \(\Sigma\).
+\[P(\sigma^2) \propto \frac{1}{\sigma^2};\quad P(\boldsymbol{\beta})\propto 1;\quad P(\Sigma^{-1}) \propto 
+|\Sigma|^{-(d+1)} \exp(-\frac{1}{2}\Sigma^{-1})\] d is dimension of
+\(\beta\).
+
+\hypertarget{find-out-the-posterial-distribution}{%
+\section{Find out the posterial
+distribution:}\label{find-out-the-posterial-distribution}}
+
+It is easy to see that:
+
+\[f(Y_{i}(t+6)|\boldsymbol{\beta}, \sigma) \sim N(\mu,\sigma^2)\] Where
+\(\mu\) is the linear combination of all coefficients.
+
+Our objective is to derive \(f(\boldsymbol{\beta}, \sigma|Y_{i}(t+6))\)
+
+\begin{align*}
+f(\boldsymbol{\beta},\boldsymbol{\beta_i}, \boldsymbol{\Sigma}^{-1},\sigma^2|Y_{i}(t+6)) &\propto f(Y_{i}(t+6)|\boldsymbol{\beta_i}, \sigma^2) f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1})f(\boldsymbol{\beta})f(\boldsymbol{\Sigma}^{-1})f(\sigma^2)\\
+f(Y_{i}(t+6)|\boldsymbol{\beta_i}, \sigma)&\propto \prod_{i=1}^{N} \frac{1}{\sigma}\exp\{-\frac{(x_i - \mu_i)^2}{2\sigma^2}\} 
+\;\; \text{,where } \mu_i = X^T_i\boldsymbol{\beta_i} \\
+f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1}) &\propto \frac{1}{\sqrt{|\boldsymbol{\Sigma^{-1}}|}} \exp \{ -\frac{1}{2} (\boldsymbol{\beta_i} - \boldsymbol{\beta})^T\boldsymbol{\Sigma}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\} \\
+f(\sigma^2) &\propto \frac{1}{\sigma^2}\\
+f(\boldsymbol{\beta}) &\propto 1 \\
+f(\boldsymbol{\Sigma}^{-1}) &\propto |\Sigma|^{-8} \exp(-\frac{1}{2}\Sigma^{-1})
+\end{align*}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data =}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{"hurrican356.csv"}\NormalTok{)}
+\NormalTok{df =}\StringTok{ }\NormalTok{data }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{Month =} \KeywordTok{factor}\NormalTok{(Month, }\DataTypeTok{levels =} \KeywordTok{c}\NormalTok{(}\StringTok{"January"}\NormalTok{, }\StringTok{"April"}\NormalTok{, }\StringTok{"May"}\NormalTok{, }\StringTok{"June"}\NormalTok{, }\StringTok{"July"}\NormalTok{, }\StringTok{"August"}\NormalTok{,}
+                                           \StringTok{"September"}\NormalTok{, }\StringTok{"October"}\NormalTok{, }\StringTok{"November"}\NormalTok{, }\StringTok{"December"}\NormalTok{)),}
+         \DataTypeTok{Month =} \KeywordTok{as.numeric}\NormalTok{(Month),}
+         \DataTypeTok{Nature =} \KeywordTok{as.numeric}\NormalTok{(}\KeywordTok{as.factor}\NormalTok{(Nature)))}
+\NormalTok{id =}\StringTok{ }\NormalTok{df }\OperatorTok{%>%}\StringTok{ }\KeywordTok{group_by}\NormalTok{(Season, ID) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{summarize}\NormalTok{(}\DataTypeTok{n =} \KeywordTok{n}\NormalTok{())}
+
+\NormalTok{upd.bi =}\StringTok{ }\ControlFlowTok{function}\NormalTok{(df, epis, beta, sigma, n)\{}
+\NormalTok{  sd =}\StringTok{ }\KeywordTok{solve}\NormalTok{(epis }\OperatorTok{+}\StringTok{ }\KeywordTok{diag}\NormalTok{(n}\OperatorTok{*}\NormalTok{sigma, }\DecValTok{8}\NormalTok{, }\DecValTok{8}\NormalTok{)) }\CommentTok{# posterior distribution for beta.i }
+\NormalTok{  mu =}\StringTok{ }\NormalTok{sd }\OperatorTok{%*%}\StringTok{ }\NormalTok{(epis }\OperatorTok{%*%}\StringTok{ }\NormalTok{beta }\OperatorTok{+}\StringTok{ }\NormalTok{sigma}\OperatorTok{*}\KeywordTok{sum}\NormalTok{(df }\OperatorTok{%*%}\StringTok{ }\NormalTok{beta)) }\CommentTok{# posterior distribution for beta.i}
+  \KeywordTok{return}\NormalTok{(}\KeywordTok{list}\NormalTok{(}\DataTypeTok{sd =}\NormalTok{ sd, }\DataTypeTok{mu =}\NormalTok{ mu))\}}
+\NormalTok{mc =}\StringTok{ }\ControlFlowTok{function}\NormalTok{(df, a, b, ini.sigma, }\DataTypeTok{niter =} \DecValTok{2}\NormalTok{)\{}
+\NormalTok{  d.lat =}\StringTok{ }\KeywordTok{sapply}\NormalTok{(}\DecValTok{2}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(df), }\ControlFlowTok{function}\NormalTok{(i)\{df[i,}\DecValTok{7}\NormalTok{] }\OperatorTok{-}\StringTok{ }\NormalTok{df[i}\DecValTok{-1}\NormalTok{, }\DecValTok{7}\NormalTok{]\})}
+\NormalTok{  d.lon =}\StringTok{ }\KeywordTok{sapply}\NormalTok{(}\DecValTok{2}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(df), }\ControlFlowTok{function}\NormalTok{(i)\{df[i,}\DecValTok{8}\NormalTok{] }\OperatorTok{-}\StringTok{ }\NormalTok{df[i}\DecValTok{-1}\NormalTok{, }\DecValTok{8}\NormalTok{]\})}
+\NormalTok{  d.spd =}\StringTok{ }\KeywordTok{sapply}\NormalTok{(}\DecValTok{2}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(df), }\ControlFlowTok{function}\NormalTok{(i)\{df[i,}\DecValTok{9}\NormalTok{] }\OperatorTok{-}\StringTok{ }\NormalTok{df[i}\DecValTok{-1}\NormalTok{, }\DecValTok{9}\NormalTok{]\})}
+\NormalTok{  d.yi =}\StringTok{ }\NormalTok{df[}\OperatorTok{-}\DecValTok{1}\NormalTok{,}\DecValTok{9}\NormalTok{]}
+\NormalTok{  dt =}\StringTok{ }\KeywordTok{cbind}\NormalTok{(d.yi, df[}\OperatorTok{-}\DecValTok{1}\NormalTok{,}\DecValTok{1}\NormalTok{], df[}\OperatorTok{-}\DecValTok{1}\NormalTok{,}\DecValTok{4}\NormalTok{], df[}\OperatorTok{-}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{], df[}\OperatorTok{-}\DecValTok{1}\NormalTok{,}\DecValTok{5}\NormalTok{], df[}\OperatorTok{-}\KeywordTok{nrow}\NormalTok{(df),}\DecValTok{9}\NormalTok{], d.lat, d.lon, d.spd) }
+  \CommentTok{# final dataset for each individual grp}
+\NormalTok{  delta1 =}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\KeywordTok{sapply}\NormalTok{(}\DecValTok{2}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(df), }\ControlFlowTok{function}\NormalTok{(i)\{df[i,}\DecValTok{7}\NormalTok{] }\OperatorTok{-}\StringTok{ }\NormalTok{df[i}\DecValTok{-1}\NormalTok{, }\DecValTok{7}\NormalTok{]\}))}
+\NormalTok{  delta2 =}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\KeywordTok{sapply}\NormalTok{(}\DecValTok{2}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(df), }\ControlFlowTok{function}\NormalTok{(i)\{df[i,}\DecValTok{8}\NormalTok{] }\OperatorTok{-}\StringTok{ }\NormalTok{df[i}\DecValTok{-1}\NormalTok{, }\DecValTok{8}\NormalTok{]\}))}
+\NormalTok{  delta3 =}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\KeywordTok{sapply}\NormalTok{(}\DecValTok{2}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(df), }\ControlFlowTok{function}\NormalTok{(i)\{df[i,}\DecValTok{9}\NormalTok{] }\OperatorTok{-}\StringTok{ }\NormalTok{df[i}\DecValTok{-1}\NormalTok{, }\DecValTok{9}\NormalTok{]\}))}
+\NormalTok{  dt =}\StringTok{ }\KeywordTok{cbind}\NormalTok{(df[,}\DecValTok{1}\NormalTok{], df[,}\DecValTok{4}\NormalTok{], df[,}\DecValTok{3}\NormalTok{], df[,}\DecValTok{5}\NormalTok{], df[,}\DecValTok{9}\NormalTok{], delta1, delta2, delta3) }\CommentTok{# final dataset for each individual group}
+\NormalTok{  n =}\StringTok{ }\KeywordTok{nrow}\NormalTok{(dt)}
+\NormalTok{  epis =}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\StringTok{"list"}\NormalTok{, niter)}
+\NormalTok{  beta =}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\OtherTok{NA}\NormalTok{, }\DataTypeTok{nrow =} \DecValTok{8}\NormalTok{, }\DataTypeTok{ncol =}\NormalTok{ niter)}
+\NormalTok{  beta.i =}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\OtherTok{NA}\NormalTok{, }\DataTypeTok{nrow =} \DecValTok{8}\NormalTok{, }\DataTypeTok{ncol =}\NormalTok{ niter)}
+\NormalTok{  sigma =}\StringTok{ }\KeywordTok{rep}\NormalTok{(}\OtherTok{NA}\NormalTok{, niter)}
+\NormalTok{  epis[[}\DecValTok{1}\NormalTok{]] =}\StringTok{ }\KeywordTok{cor}\NormalTok{(}\KeywordTok{matrix}\NormalTok{(}\DecValTok{1}\OperatorTok{/}\NormalTok{extraDistr}\OperatorTok{::}\KeywordTok{rinvgamma}\NormalTok{(}\DecValTok{64}\NormalTok{, }\DataTypeTok{alpha =}\NormalTok{ a, }\DataTypeTok{beta =}\NormalTok{ b), }\DecValTok{8}\NormalTok{, }\DecValTok{8}\NormalTok{)) }
+  \CommentTok{# initial epsilon^-1 ~ inverse.gamma(0.001, 0.001) (8x8)}
+\NormalTok{  beta[,}\DecValTok{1}\NormalTok{] =}\StringTok{ }\KeywordTok{rep}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{8}\NormalTok{) }\CommentTok{# initial beta (8x1)}
+\NormalTok{  sigma[}\DecValTok{1}\NormalTok{] =}\StringTok{ }\NormalTok{ini.sigma }\CommentTok{# initial sigma }
+\NormalTok{  beta.i[,}\DecValTok{1}\NormalTok{] =}\StringTok{ }\KeywordTok{mvrnorm}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DataTypeTok{mu =} \KeywordTok{upd.bi}\NormalTok{(dt, epis[[}\DecValTok{1}\NormalTok{]], beta[,}\DecValTok{1}\NormalTok{], sigma[}\DecValTok{1}\NormalTok{], n)}\OperatorTok{$}\NormalTok{mu, }
+  \DataTypeTok{Sigma =} \KeywordTok{upd.bi}\NormalTok{(dt, epis[[}\DecValTok{1}\NormalTok{]], beta[,}\DecValTok{1}\NormalTok{], sigma[}\DecValTok{1}\NormalTok{], n)}\OperatorTok{$}\NormalTok{sd) }
+  \CommentTok{# mvrnorm generates the beta_i for each subgroup(8x1) - beta.i ~ N(beta, epsilon)}
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{2}\OperatorTok{:}\NormalTok{niter)\{}
+\NormalTok{    epis[[i]] =}\StringTok{ }\KeywordTok{rinvwishart}\NormalTok{(n }\OperatorTok{+}\StringTok{ }\NormalTok{a, }\KeywordTok{diag}\NormalTok{(}\KeywordTok{sum}\NormalTok{((beta.i[,i}\DecValTok{-1}\NormalTok{] }\OperatorTok{-}\StringTok{ }\NormalTok{beta[,i}\DecValTok{-1}\NormalTok{])}\OperatorTok{^}\DecValTok{2}\NormalTok{), }\DecValTok{8}\NormalTok{, }\DecValTok{8}\NormalTok{) }\OperatorTok{+}\StringTok{ }\FloatTok{0.001}\NormalTok{) }
+    \CommentTok{# use beta.i and beta update epsilon, pi(epsilon) ~ Inviwishart(n + a, beta_variance + b)!!!!!!!!(May change back to inverse gamma?????)}
+\NormalTok{    beta[,i] =}\StringTok{ }\KeywordTok{mvrnorm}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DataTypeTok{mu =}\NormalTok{ n}\OperatorTok{*}\NormalTok{beta.i[,i}\DecValTok{-1}\NormalTok{], }\DataTypeTok{Sigma =}\NormalTok{ n}\OperatorTok{*}\NormalTok{epis[[i]])  }\CommentTok{# beta ~ N(n*beta_i, n*epsilon)}
+\NormalTok{    sigma[i] =}\StringTok{ }\NormalTok{extraDistr}\OperatorTok{::}\KeywordTok{rinvgamma}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DataTypeTok{alpha =}\NormalTok{ n }\OperatorTok{+}\StringTok{ }\DecValTok{1}\NormalTok{, }\KeywordTok{sum}\NormalTok{((dt[,}\DecValTok{5}\NormalTok{] }\OperatorTok{-}\StringTok{ }\NormalTok{dt }\OperatorTok{%*%}\StringTok{ }\NormalTok{beta.i[,i}\DecValTok{-1}\NormalTok{])}\OperatorTok{^}\DecValTok{2}\NormalTok{)) }
+    \CommentTok{# sigma ~ inverse.gamma(n + 1, sample residual of Yi)}
+\NormalTok{    beta.i[,i] =}\StringTok{ }\KeywordTok{mvrnorm}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DataTypeTok{mu =} \KeywordTok{upd.bi}\NormalTok{(dt, epis[[i]], beta[,i], sigma[i], n)}\OperatorTok{$}\NormalTok{mu, }
+  \DataTypeTok{Sigma =} \KeywordTok{upd.bi}\NormalTok{(dt, epis[[i]], beta[,i], sigma[i], n)}\OperatorTok{$}\NormalTok{sd)\}}
+  \KeywordTok{return}\NormalTok{(}\KeywordTok{list}\NormalTok{(}\DataTypeTok{beta.i =}\NormalTok{  beta.i))\}}
+
+\NormalTok{grp =}\StringTok{ }\ControlFlowTok{function}\NormalTok{(df, id)\{}
+\NormalTok{  sub.grp =}\StringTok{ }\KeywordTok{vector}\NormalTok{(}\StringTok{"list"}\NormalTok{, }\KeywordTok{nrow}\NormalTok{(id))}
+\NormalTok{  id.n =}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, id}\OperatorTok{$}\NormalTok{n)}
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(sub.grp))\{}
+\NormalTok{    sub.grp[[i]] =}\StringTok{ }\NormalTok{df[(id.n[i]}\OperatorTok{+}\DecValTok{1}\NormalTok{)}\OperatorTok{:}\NormalTok{id.n[i}\OperatorTok{+}\DecValTok{1}\NormalTok{],]\}}
+  \KeywordTok{return}\NormalTok{(sub.grp)\}}
+\end{Highlighting}
+\end{Shaded}
+
+Posterior Distribution Inference:
+
+\(Y_{i，t+6} = X_{i}\beta_{i} + \epsilon_{it}\), with
+\(i = 1, 2, ....,n,\ t = 0, 2, .... t_i\) 1. \(\beta_i|.\):
+\[Y_{it} \sim N(X_i\beta_i, \sigma^2),\ \beta_i\sim N(\beta, \Sigma^{-1})\]
+\[\pi(Y_{it}|X_i\beta_i, \sigma^2) \propto \prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-2}exp\{{-\frac{(Y_{it} - X_{i}\beta_{i})^2}{2\sigma^2}\}}\]
+\[\pi(X_i\beta_i | Y_{it}, \sigma^2) \propto \pi(Y_{it}|X_i\beta_i, \sigma^2) \cdot \pi(\beta_i)\]
+\[\propto \prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-1}\Sigma^{-1/2}exp\{{-\frac{1}{2}(Y_{it} - X_{i}\beta_{i})^T(I\sigma_i^{-2})(Y_{it} - X_{i}\beta_{i})\}} \cdot exp{\{-\frac{1}{2}(\beta_i - \beta)^T\Sigma^{-1}(\beta_i - \beta)\}}\]
+\[\propto exp{\{-\frac{1}{2}((\sigma_i^2(X_i^TX_i)^{-1}) + \Sigma^{-1})^{-1}\sum^n_{i=1}((X_i^TX_i)^{-1}\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))^T((\sigma_i^2(X_i^TX_i)^{-1} + \Sigma^{-1})((X_i^TX_i)^{-1}\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))\}}\]
+\[\beta_i \sim N(K((X_i^TX_i)^{-1}\Sigma^{-1}\beta + \sigma^{-2}X_i^TY_{it}), K), where\ K = ((X_i^TX_i)^{-1}\Sigma^{-1} + \sigma^{-2}(X_i^TX_i)^{-1})^{-1}\]
+2.\(\sigma^2|.\):
+\[\pi(\sigma_i^2|.) = \pi(Y_{it}|X_i\beta_i) \cdot \pi(\sigma_i^2)\]
+\[\propto \prod^n_{i=1}\prod^{t_i}_{t=1} \frac{1}{\sqrt{\sigma_i^2}}exp\{{-\frac{1}{2}(Y_{it} - X_{i}\beta_{i})^T(I\sigma_i^{-2})(Y_{it} - X_{i}\beta_{i})\}} \cdot \frac{1}{\sigma_i^2}\]
+\[\propto \sigma_i^{-(n-2)}exp{\{-\frac{1}{2}\sum^n_{i=1}\sum^{ti}_{t=1}(Y_{it} - X_i\beta_i)^T(Y_{it}-X_i\beta_i)n\sigma_i^{-2}\}}\]
+\[\sigma_i^2 \sim InvGamma(\frac{n}{2}, \frac{nSSR}{2}),\ where\ SSR = \sum^n_{i=1}\sum^{ti}_{t=1}(Y_{it} - X_i\beta_i)^T(Y_{it}- X_i\beta_i)\]
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\item
+  \(\Sigma^{-1}|.\):
+  \[\pi(\Sigma^{-1}|.) = \prod^n_{i=1} \pi(Y_{it}|\beta_i,\beta, \Sigma^{-1}, \sigma^2) \cdot \pi(\beta_i|\beta, \Sigma^{-1})\cdot \pi(\Sigma^{-1})\]
+  \[\propto \Sigma^{-n}exp{\{-\frac{1}{2}\sum^n_{i=1}(\beta_i-\beta)^T\Sigma^{-1}(\beta_i-\beta)\}}\cdot|\Sigma|^{-(d+1)}exp{\{-\frac{1}{2}\Sigma^{-1}\}}\]
+  \[\propto \Sigma^{-(n/2+d+1)}exp{\{-\frac{1}{2}(\sum^n_{i=1}(\beta_i-\beta)^T(\beta_i-\beta)+1)n\Sigma^{-1}\}}\]
+  \[\Sigma^{-1} \sim InvWhishart(\frac{n}{2}, nSSR_{\beta_i}),\ where\ SSR_{\beta_i} = \sum^n_{i=1}((X_i^TX_i)^{-1}\beta_i - (X_i^TX_i)^{-1}\beta)^2\]
+\item
+  \(\beta|.\):
+  \[\pi(\beta|.) = \pi(Y_{it}|.)\cdot \pi(\beta_i|.) \cdot \pi(\beta) \propto \pi(\beta_i|.)\]
+  \[\propto exp{\{\frac{1}{2}\sum^n_{i=1}((X_i^TX_i)^{-1}(\beta_i - \beta))^T((X_i^TX_i)^{-1}(\beta_i - \beta))((X_i^TX_i)^{-1}\Sigma^{-1})\}}\]
+  \[\beta \sim N(\hat{\beta_i}, \Sigma^{-1}((X_i^TX_i)^{-1}),\ where\ \hat{\beta} = (X_i^TX_i)^{-1}X_i^TY_{it}\]
+  Or, according to the Central Limit Theorem,
+  \[\frac{\beta_i - \beta}{\sqrt{\Sigma^{-1}/n}},\ \beta = \bar{\beta_i}\ \text{for}\ i = 1, 2,...,n\]
+\end{enumerate}
+
+\end{document}
