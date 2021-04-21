@@ -130,17 +130,25 @@ $$Y_{it} \sim N(X_i\beta_i, \sigma^2),\ \beta_i\sim N(\beta, \Sigma^{-1})$$
 $$\pi(Y_{it}|X_i\beta_i, \sigma^2) \propto \prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-2}exp\{{-(\frac{Y_{it} - X_{i}\beta_{i})^2}{2\sigma^2}\}}$$
 $$\pi(X_i\beta_i | Y_{it}, \sigma^2) \propto \pi(Y_{it}|X_i\beta_i, \sigma^2) \cdot \pi(\beta_i)$$
 $$\propto \prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-1}\Sigma^{-1/2}exp\{{-\frac{1}{2}(Y_{it} - X_{i}\beta_{i})^T(I\sigma_i^{-2})(Y_{it} - X_{i}\beta_{i})\}} \cdot exp{\{-\frac{1}{2}(\beta_i - \beta)^T\Sigma^{-1}(\beta_i - \beta)\}}$$
-$$\propto exp{\{-\frac{1}{2}((\sigma_i^2(X_i^TX_i)^{-1}) + \Sigma^{-1})^{-1}\sum^n_{i=1}(\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))^T((\sigma_i^2(X_i^TX_i)^{-1} + \Sigma^{-1})(\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))\}}$$
-$$\beta_i \sim N(K(\Sigma^{-1}\beta + \sigma^{-2}X_i^TY_{it}), K), where\ K = (\Sigma^{-1} + (\sigma^{-2}X_i^TX_i)^{-1})^{-1}$$
+$$\propto exp{\{-\frac{1}{2}((\sigma_i^2(X_i^TX_i)^{-1}) + \Sigma^{-1})^{-1}\sum^n_{i=1}((X_i^TX_i)^{-1}\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))^T((\sigma_i^2(X_i^TX_i)^{-1} + \Sigma^{-1})((X_i^TX_i)^{-1}\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))\}}$$
+$$\beta_i \sim N(K((X_i^TX_i)^{-1}\Sigma^{-1}\beta + \sigma^{-2}X_i^TY_{it}), K), where\ K = ((X_i^TX_i)^{-1}\Sigma^{-1} + \sigma^{-2}(X_i^TX_i)^{-1})^{-1}$$
 2.$\sigma^2|.$:
 $$\pi(\sigma_i^2|.) = \pi(Y_{it}|X_i\beta_i) \cdot \pi(\sigma_i^2)$$
-$$\propto \prod^n_{i=1}\prod^{t_i}_{t=1} \frac{1}{\sqrt{\sigma^2}}exp\{{-\frac{1}{2}(Y_{it} - X_{i}\beta_{i})^T(I\sigma_i^{-2})(Y_{it} - X_{i}\beta_{i})\}} \cdot \frac{1}{\sigma^2}$$
-$$\propto \sigma^{-(n-2)}\sum^n_{i=1}\sum^{ti}_{t=1}exp{\{-\frac{1}{2}(Y_{it} - X_i\beta_i)^T(Y_{it}-Xi\beta_i)\sigma^{-2}\}}$$
-$$\sigma^2 \sim InvGamma(\frac{n}{2}, SSR),\ where\ SSR = \sum^n_{i=1}\sum^{ti}_{t=1}(Y_{it} - X_i\beta_i)^T(Y_{it}- X_i\beta_i)$$
+$$\propto \prod^n_{i=1}\prod^{t_i}_{t=1} \frac{1}{\sqrt{\sigma_i^2}}exp\{{-\frac{1}{2}(Y_{it} - X_{i}\beta_{i})^T(I\sigma_i^{-2})(Y_{it} - X_{i}\beta_{i})\}} \cdot \frac{1}{\sigma_i^2}$$
+$$\propto \sigma_i^{-(n-2)}exp{\{-\frac{1}{2}\sum^n_{i=1}\sum^{ti}_{t=1}(Y_{it} - X_i\beta_i)^T(Y_{it}-X_i\beta_i)n\sigma_i^{-2}\}}$$
+$$\sigma_i^2 \sim InvGamma(\frac{n}{2}, \frac{nSSR}{2}),\ where\ SSR = \sum^n_{i=1}\sum^{ti}_{t=1}(Y_{it} - X_i\beta_i)^T(Y_{it}- X_i\beta_i)$$
 
 3. $\Sigma^{-1}|.$:
-$$\pi(\Sigma^{})$$
+$$\pi(\Sigma^{-1}|.) = \prod^n_{i=1} \pi(Y_{it}|\beta_i,\beta, \Sigma^{-1}, \sigma^2) \cdot \pi(\beta_i|\beta, \Sigma^{-1})\cdot \pi(\Sigma^{-1})$$
+$$\propto \Sigma^{-n}exp{\{-\frac{1}{2}\sum^n_{i=1}(\beta_i-\beta)^T\Sigma^{-1}(\beta_i-\beta)\}}\cdot|\Sigma|^{-(d+1)}exp{\{-\frac{1}{2}\Sigma^{-1}\}}$$
+$$\propto \Sigma^{-(n/2+d+1)}exp{\{-\frac{1}{2}(\sum^n_{i=1}(\beta_i-\beta)^T(\beta_i-\beta)+1)n\Sigma^{-1}\}}$$
+$$\Sigma^{-1} \sim InvWhishart(\frac{n}{2}, nSSR_{\beta_i}),\ where\ SSR_{\beta_i} = \sum^n_{i=1}((X_i^TX_i)^{-1}\beta_i - (X_i^TX_i)^{-1}\beta)^2$$
 
-
+4. $\beta|.$: 
+$$\pi(\beta|.) = \pi(Y_{it}|.)\cdot \pi(\beta_i|.) \cdot \pi(\beta) \propto \pi(\beta_i|.)$$
+$$\propto exp{\{\frac{1}{2}\sum^n_{i=1}((X_i^TX_i)^{-1}(\beta_i - \beta))^T((X_i^TX_i)^{-1}(\beta_i - \beta))((X_i^TX_i)^{-1}\Sigma^{-1})\}}$$
+$$\beta \sim N(\hat{\beta_i}, \Sigma^{-1}((X_i^TX_i)^{-1}),\ where\ \hat{\beta} = (X_i^TX_i)^{-1}X_i^TY_{it}$$
+Or, according to the Central Limit Theorem,
+$$\frac{\beta_i - \beta}{\sqrt{\Sigma^{-1}/n}},\ \beta = \bar{\beta_i}\ \text{for}\ i = 1, 2,...,n$$
 
 
