@@ -64,7 +64,7 @@ The full posterior, then, is simply the product of these three terms—the likel
 \end{align*}
 
 
-```{r}
+```{r,eval=F}
 data = read.csv("hurrican356.csv")
 df = data %>%
   mutate(Month = factor(Month, levels = c("January", "April", "May", "June", "July", "August",
@@ -124,10 +124,10 @@ grp = function(df, id){
 
 Posterior Distribution Inference:
 
-$Y_{it} = X_{i}\beta_{i} + \epsilon_{it}$, with $i = 1, 2, ....,n,\ t = 1, 2, .... t_i$
+$Y_{i，t+6} = X_{i}\beta_{i} + \epsilon_{it}$, with $i = 1, 2, ....,n,\ t = 0, 2, .... t_i$
 1. $\beta_i|.$:
 $$Y_{it} \sim N(X_i\beta_i, \sigma^2),\ \beta_i\sim N(\beta, \Sigma^{-1})$$
-$$\pi(Y_{it}|X_i\beta_i, \sigma^2) \propto \prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-2}exp\{{-(\frac{Y_{it} - X_{i}\beta_{i})^2}{2\sigma^2}\}}$$
+$$\pi(Y_{it}|X_i\beta_i, \sigma^2) \propto \prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-2}exp\{{-\frac{(Y_{it} - X_{i}\beta_{i})^2}{2\sigma^2}\}}$$
 $$\pi(X_i\beta_i | Y_{it}, \sigma^2) \propto \pi(Y_{it}|X_i\beta_i, \sigma^2) \cdot \pi(\beta_i)$$
 $$\propto \prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-1}\Sigma^{-1/2}exp\{{-\frac{1}{2}(Y_{it} - X_{i}\beta_{i})^T(I\sigma_i^{-2})(Y_{it} - X_{i}\beta_{i})\}} \cdot exp{\{-\frac{1}{2}(\beta_i - \beta)^T\Sigma^{-1}(\beta_i - \beta)\}}$$
 $$\propto exp{\{-\frac{1}{2}((\sigma_i^2(X_i^TX_i)^{-1}) + \Sigma^{-1})^{-1}\sum^n_{i=1}((X_i^TX_i)^{-1}\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))^T((\sigma_i^2(X_i^TX_i)^{-1} + \Sigma^{-1})((X_i^TX_i)^{-1}\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))\}}$$
