@@ -58,6 +58,12 @@ f(\boldsymbol{\beta}) &\propto 1 \\
 f(\boldsymbol{\Sigma}^{-1}) &\propto |\Sigma|^{-8} \exp(-\frac{1}{2}\Sigma^{-1})
 \end{align*}
 
+The full posterior, then, is simply the product of these three terms—the likelihood, prior, and the distribution for $\Sigma$.
+\begin{align*}
+\prod_{i=1}^{N} \frac{1}{\sigma}\exp\{-\frac{(x_i - \mu_i)^2}{2\sigma^2}\} * \frac{1}{\sqrt{|\boldsymbol{\Sigma^{-1}}|}} \exp \{ -\frac{1}{2} (\boldsymbol{\beta_i} - \boldsymbol{\beta})^T\boldsymbol{\Sigma}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\} * |\Sigma|^{-8} \exp(-\frac{1}{2}\Sigma^{-1})
+\end{align*}
+
+
 ```{r}
 data = read.csv("hurrican356.csv")
 df = data %>%
