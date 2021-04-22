@@ -14,55 +14,6 @@ library(MASS)
 library(LaplacesDemon)
 ```
 
-# Re-state the question:
-
-Climate researchers are interested in modeling the hurricane trajectories to forecast the wind speed. Let $t$ be time (in hours) since a hurricane began, and For each hurricane $i$, we denote $Y_{i}(t)$ be the wind speed of the $i$th hurricane at time $t$. The following Bayesian model was suggested.  
-
-
-$$Y_{i}(t+6) =\beta_{0,i}+x_{i,1}\beta_{1,i} +
-x_{i,2} \beta_{2,i} + x_{i,3}\beta_{3,i} +\beta_{4,i,j}Y_{i,j}(t) +  +\beta_{5,i,j}\Delta_{i,1}(t)+\beta_{6,i,j}\Delta_{i,2}(t)+ +\beta_{7,i}\Delta_{i,3} + \epsilon_{i}(t)$$   
-where $x_{i,1}$ is the month of year when the hurricane started, $x_{i,2}$ is the calendar year of the hurricane, and $x_{i,3}$ is the type of hurricane, $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ is the change of latitude longitude, and wind speed between $t-6$ and $t$, and $\epsilon_{i,t}$ follows a  normal distributions with mean zero and variance $\sigma^2$, independent across $t$.
-
-
-In the model,  $\boldsymbol{\beta}_{i} =  (\beta_{0,i},\beta_{1,i},...,\beta_{7,i})$ are the random coefficients associated the $i$th hurricane, we assume that 
-
-$$\boldsymbol{\beta}_{i} \sim N(\boldsymbol{\beta}, \boldsymbol{\Sigma})$$
-follows a multivariate normal distributions with mean $\boldsymbol{\beta}$ and covariance matrix $\Sigma$.
-
-
-\paragraph{Prior distributions}
-
-
-We assume the following non-informative or weak prior distributions for $\sigma^2$, $\boldsymbol{\beta}$ and $\Sigma$.
-$$P(\sigma^2) \propto \frac{1}{\sigma^2};\quad P(\boldsymbol{\beta})\propto 1;\quad P(\Sigma^{-1}) \propto 
-|\Sigma|^{-(d+1)} \exp(-\frac{1}{2}\Sigma^{-1})$$
-d is dimension of $\beta$.
-
-
-# Find out the posterial distribution:
-
-It is easy to see that:
-
-$$f(Y_{i}(t+6)|\boldsymbol{\beta}, \sigma) \sim N(\mu,\sigma^2)$$
-Where $\mu$ is the linear combination of all coefficients.
-
-Our objective is to derive $f(\boldsymbol{\beta}, \sigma|Y_{i}(t+6))$
-
-\begin{align*}
-f(\boldsymbol{\beta},\boldsymbol{\beta_i}, \boldsymbol{\Sigma}^{-1},\sigma^2|Y_{i}(t+6)) &\propto f(Y_{i}(t+6)|\boldsymbol{\beta_i}, \sigma^2) f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1})f(\boldsymbol{\beta})f(\boldsymbol{\Sigma}^{-1})f(\sigma^2)\\
-f(Y_{i}(t+6)|\boldsymbol{\beta_i}, \sigma)&\propto \prod_{i=1}^{N} \frac{1}{\sigma}\exp\{-\frac{(x_i - \mu_i)^2}{2\sigma^2}\} 
-\;\; \text{,where } \mu_i = X^T_i\boldsymbol{\beta_i} \\
-f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1}) &\propto \frac{1}{\sqrt{|\boldsymbol{\Sigma^{-1}}|}} \exp \{ -\frac{1}{2} (\boldsymbol{\beta_i} - \boldsymbol{\beta})^T\boldsymbol{\Sigma}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\} \\
-f(\sigma^2) &\propto \frac{1}{\sigma^2}\\
-f(\boldsymbol{\beta}) &\propto 1 \\
-f(\boldsymbol{\Sigma}^{-1}) &\propto |\Sigma|^{-8} \exp(-\frac{1}{2}\Sigma^{-1})
-\end{align*}
-
-The full posterior, then, is simply the product of these three terms—the likelihood, prior, and the distribution for $\Sigma$.
-\begin{align*}
-\prod_{i=1}^{N} \frac{1}{\sigma}\exp\{-\frac{(x_i - \mu_i)^2}{2\sigma^2}\} * \frac{1}{\sqrt{|\boldsymbol{\Sigma^{-1}}|}} \exp \{ -\frac{1}{2} (\boldsymbol{\beta_i} - \boldsymbol{\beta})^T\boldsymbol{\Sigma}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\} * |\Sigma|^{-8} \exp(-\frac{1}{2}\Sigma^{-1})
-\end{align*}
-
 
 ```{r,eval=F}
 data = read.csv("hurrican356.csv")
@@ -78,19 +29,19 @@ upd.bi = function(df, epis, beta, sigma, n){
   mu = sd %*% (epis %*% beta + sigma*sum(df %*% beta)) # posterior distribution for beta.i
   return(list(sd = sd, mu = mu))}
 mc = function(df, a, b, ini.sigma, niter = 2){
-<<<<<<< HEAD
+
   d.lat = sapply(2:nrow(df), function(i){df[i,7] - df[i-1, 7]})
   d.lon = sapply(2:nrow(df), function(i){df[i,8] - df[i-1, 8]})
   d.spd = sapply(2:nrow(df), function(i){df[i,9] - df[i-1, 9]})
   d.yi = df[-1,9]
   dt = cbind(d.yi, df[-1,1], df[-1,4], df[-1,3], df[-1,5], df[-nrow(df),9], d.lat, d.lon, d.spd) 
   # final dataset for each individual grp
-=======
+
   delta1 = c(0, sapply(2:nrow(df), function(i){df[i,7] - df[i-1, 7]}))
   delta2 = c(0, sapply(2:nrow(df), function(i){df[i,8] - df[i-1, 8]}))
   delta3 = c(0, sapply(2:nrow(df), function(i){df[i,9] - df[i-1, 9]}))
   dt = cbind(df[,1], df[,4], df[,3], df[,5], df[,9], delta1, delta2, delta3) # final dataset for each individual group
->>>>>>> 198e79a4f5745ebd7448378ee32e24267cc86359
+
   n = nrow(dt)
   epis = vector("list", niter)
   beta = matrix(NA, nrow = 8, ncol = niter)
@@ -122,33 +73,12 @@ grp = function(df, id){
  
 ```
 
-Posterior Distribution Inference:
+Posterior Distribution Inference: see formula.pdf for detail.
 
-$Y_{i，t+6} = X_{i}\beta_{i} + \epsilon_{it}$, with $i = 1, 2, ....,n,\ t = 0, 2, .... t_i$
-1. $\beta_i|.$:
-$$Y_{it} \sim N(X_i\beta_i, \sigma^2),\ \beta_i\sim N(\beta, \Sigma^{-1})$$
-$$\pi(Y_{it}|X_i\beta_i, \sigma^2) \propto \prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-2}exp\{{-\frac{(Y_{it} - X_{i}\beta_{i})^2}{2\sigma^2}\}}$$
-$$\pi(X_i\beta_i | Y_{it}, \sigma^2) \propto \pi(Y_{it}|X_i\beta_i, \sigma^2) \cdot \pi(\beta_i)$$
-$$\propto \prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-1}\Sigma^{-1/2}exp\{{-\frac{1}{2}(Y_{it} - X_{i}\beta_{i})^T(I\sigma_i^{-2})(Y_{it} - X_{i}\beta_{i})\}} \cdot exp{\{-\frac{1}{2}(\beta_i - \beta)^T\Sigma^{-1}(\beta_i - \beta)\}}$$
-$$\propto exp{\{-\frac{1}{2}((\sigma_i^2(X_i^TX_i)^{-1}) + \Sigma^{-1})^{-1}\sum^n_{i=1}((X_i^TX_i)^{-1}\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))^T((\sigma_i^2(X_i^TX_i)^{-1} + \Sigma^{-1})((X_i^TX_i)^{-1}\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))\}}$$
-$$\beta_i \sim N(K((X_i^TX_i)^{-1}\Sigma^{-1}\beta + \sigma^{-2}X_i^TY_{it}), K), where\ K = ((X_i^TX_i)^{-1}\Sigma^{-1} + \sigma^{-2}(X_i^TX_i)^{-1})^{-1}$$
-2.$\sigma^2|.$:
-$$\pi(\sigma_i^2|.) = \pi(Y_{it}|X_i\beta_i) \cdot \pi(\sigma_i^2)$$
-$$\propto \prod^n_{i=1}\prod^{t_i}_{t=1} \frac{1}{\sqrt{\sigma_i^2}}exp\{{-\frac{1}{2}(Y_{it} - X_{i}\beta_{i})^T(I\sigma_i^{-2})(Y_{it} - X_{i}\beta_{i})\}} \cdot \frac{1}{\sigma_i^2}$$
-$$\propto \sigma_i^{-(n-2)}exp{\{-\frac{1}{2}\sum^n_{i=1}\sum^{ti}_{t=1}(Y_{it} - X_i\beta_i)^T(Y_{it}-X_i\beta_i)n\sigma_i^{-2}\}}$$
-$$\sigma_i^2 \sim InvGamma(\frac{n}{2}, \frac{nSSR}{2}),\ where\ SSR = \sum^n_{i=1}\sum^{ti}_{t=1}(Y_{it} - X_i\beta_i)^T(Y_{it}- X_i\beta_i)$$
 
-3. $\Sigma^{-1}|.$:
-$$\pi(\Sigma^{-1}|.) = \prod^n_{i=1} \pi(Y_{it}|\beta_i,\beta, \Sigma^{-1}, \sigma^2) \cdot \pi(\beta_i|\beta, \Sigma^{-1})\cdot \pi(\Sigma^{-1})$$
-$$\propto \Sigma^{-n}exp{\{-\frac{1}{2}\sum^n_{i=1}(\beta_i-\beta)^T\Sigma^{-1}(\beta_i-\beta)\}}\cdot|\Sigma|^{-(d+1)}exp{\{-\frac{1}{2}\Sigma^{-1}\}}$$
-$$\propto \Sigma^{-(n/2+d+1)}exp{\{-\frac{1}{2}(\sum^n_{i=1}(\beta_i-\beta)^T(\beta_i-\beta)+1)n\Sigma^{-1}\}}$$
-$$\Sigma^{-1} \sim InvWhishart(\frac{n}{2}, nSSR_{\beta_i}),\ where\ SSR_{\beta_i} = \sum^n_{i=1}((X_i^TX_i)^{-1}\beta_i - (X_i^TX_i)^{-1}\beta)^2$$
+# Reference:
 
-4. $\beta|.$: 
-$$\pi(\beta|.) = \pi(Y_{it}|.)\cdot \pi(\beta_i|.) \cdot \pi(\beta) \propto \pi(\beta_i|.)$$
-$$\propto exp{\{\frac{1}{2}\sum^n_{i=1}((X_i^TX_i)^{-1}(\beta_i - \beta))^T((X_i^TX_i)^{-1}(\beta_i - \beta))((X_i^TX_i)^{-1}\Sigma^{-1})\}}$$
-$$\beta \sim N(\hat{\beta_i}, \Sigma^{-1}((X_i^TX_i)^{-1}),\ where\ \hat{\beta} = (X_i^TX_i)^{-1}X_i^TY_{it}$$
-Or, according to the Central Limit Theorem,
-$$\frac{\beta_i - \beta}{\sqrt{\Sigma^{-1}/n}},\ \beta = \bar{\beta_i}\ \text{for}\ i = 1, 2,...,n$$
+1. https://downloads.hindawi.com/journals/jps/2014/673657.pdf
 
+2. http://www.stat.cmu.edu/~brian/463-663/week10/Chapter%2009.pdf
 
