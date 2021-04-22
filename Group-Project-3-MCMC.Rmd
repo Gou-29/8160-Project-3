@@ -253,7 +253,7 @@ regularMHstep = function(startpars, niter = 1000, rhoa, betaa, sigmaa){
   }
 ```
 
-```{r}
+```{r echo=FALSE,cache=TRUE, message=FALSE, warning=FALSE}
 # starting points
 startpars = list(rho = rho, beta = beta, sigma = sigma)
 rho_a = c(0.005,0.005,0.01)
@@ -321,30 +321,6 @@ hat_rho = apply(hatrho,2,mean)
 hat_beta = apply(hatbeta,2,mean)
 hat_sigmam = matrix(c(hat_sigma[c(1:3)], hat_sigma[2], hat_sigma[c(4,5)], hat_sigma
                       [c(3,5)], hat_sigma[6]), 3)
-hat_betam = matrix(hat_beta,3)
-hat_sigmam
-hat_betam
-hat_rho
-ci_sigma = apply(hatsigma, 2, quantile, probs = c(0.025, 0.975))
-ci_rho = apply(hatrho, 2, quantile, probs = c(0.025, 0.975))
-ci_beta = apply(hatbeta, 2, quantile, probs = c(0.025, 0.975))
-rbind(hat_sigma, ci_sigma)
-rbind(hat_rho, ci_rho)
-rbind(hat_beta, ci_beta)
-```
-
-```{r}
-# estimates
-hat_sigmas = MHresults$est_sigma
-hat_rhos = MHresults$est_rho
-hat_betas = MHresults$est_beta
-hatsigma = as.matrix(hat_sigmas[1500:nrow(hat_sigmas),])
-hatrho = as.matrix(hat_rhos[1500:nrow(hat_rhos),])
-hatbeta = as.matrix(hat_betas[1500:nrow(hat_betas),])
-hat_sigma = apply(hatsigma,2, mean)
-hat_rho = apply(hatrho,2,mean)
-hat_beta = apply(hatbeta,2,mean)
-hat_sigmam = matrix(c(hat_sigma[c(1:3)], hat_sigma[2], hat_sigma[c(4,5)], hat_sigma[c(3,5)], hat_sigma[6]), 3)
 hat_betam = matrix(hat_beta,3)
 hat_sigmam
 hat_betam
