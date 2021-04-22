@@ -1,0 +1,358 @@
+---
+title: 'Project 3: Bayesian modeling of hurricane trajectories'
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+
+# Hurricane Data
+hurricane356.csv collected the track data of 356 hurricanes in the North Atlantic area since 1989. For all the storms, their location (longitude \& latitude) and maximum wind speed were recorded every 6 hours. The data includes the following variables 
+
+1. **ID**: ID of the hurricanes
+2. **Season**: In which \textbf{year} the hurricane occurred 
+3. **Month**: In which \textbf{month} the hurricane occurred 
+4. **Nature**: Nature of the hurricane 
+  + ET: Extra Tropical
+  + DS: Disturbance
+  + NR: Not Rated
+  + SS: Sub Tropical
+  + TS: Tropical Storm
+5. **time**: dates and time of the record  
+6. **Latitude** and **Longitude**: The location of a hurricane check point 
+7. **Wind.kt** Maximum wind speed (in Knot) at each check point 
+
+
+
+## Load and explore the hurricane data through visulaizations
+
+```{r eval=FALSE, include=TRUE}
+library(ggplot2)
+# dt= read.csv("/cloud/project/hurrican356.csv")
+dt= read.csv("./hurrican356.csv")
+ggplot(data=dt, aes(x = Longitude, y = Latitude)) + 
+  stat_summary_2d(data = dt, aes(x = Longitude, y = Latitude, z = dt$Wind.kt), fun = median, binwidth = c(1, 1), show.legend = TRUE)
+library(data.table)
+dt <- as.data.table(dt)
+summary(dt)
+```
+
+Overlay the hurricane data in the world map
+```{r eval=FALSE, include=TRUE}
+library(maps)
+map <- ggplot(data = dt, aes(x = Longitude, y = Latitude)) + 
+  geom_polygon(data = map_data(map = 'world'), aes(x = long, y = lat, group = group))
+map +
+  stat_summary_2d(data = dt, aes(x = Longitude, y = Latitude, z = dt$Wind.kt), fun = median, binwidth = c(1, 1), show.legend = TRUE, alpha = 0.75) + 
+  ggtitle(paste0("Atlantic Windstorm mean knot"))
+```
+
+Additional Plots
+```{r eval=FALSE, include=TRUE}
+map <- ggplot(dt, aes(x = Longitude, y = Latitude, group = ID)) + 
+  geom_polygon(data = map_data("world"), 
+               aes(x = long, y = lat, group = group), 
+               fill = "gray25", colour = "gray10", size = 0.2) + 
+  geom_path(data = dt, aes(group = ID, colour = Wind.kt), size = 0.5) + 
+  xlim(-138, -20) + ylim(3, 55) + 
+  labs(x = "", y = "", colour = "Wind \n(knots)") + 
+  theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+        axis.text.x = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+seasonrange <- paste(range(dt[, "Season"]), collapse=" - ")
+
+map + ggtitle(paste("Atlantic named Windstorm Trajectories (", 
+                     seasonrange, ")\n")) 
+```
+
+Show hurricane tracks by month
+```{r eval=FALSE, include=TRUE}
+mapMonth <- map + facet_wrap(~ Month) +
+  ggtitle(paste("Atlantic named Windstorm Trajectories by Month (", 
+                 seasonrange, ")\n")) 
+mapMonth
+```
+
+
+
+# A Hierarchical Bayesian model for hurricane trajectories. 
+
+Climate researchers are interested in modeling the hurricane trajectories to forecast the wind speed. Let $t$ be time (in hours) since a hurricane began, and For each hurricane $i$, we denote $Y_{i}(t)$ be the wind speed of the $i$th hurricane at time $t$. The following Bayesian model was suggested.  
+
+
+$$Y_{i}(t+6) =\beta_{0,i}+x_{i,1}\beta_{1,i} +
+x_{i,2} \beta_{2,i} + x_{i,3}\beta_{3,i} +\beta_{4,i}Y_{i}(t) +\beta_{5,i}\Delta_{i,1}(t)+ \beta_{6,i}\Delta_{i,2}(t)+ +\beta_{7,i}\Delta_{i,3} + \epsilon_{i}(t)$$
+
+where $x_{i,1}$ is the month of year when the hurricane started, $x_{i,2}$ is the calendar year of the hurricane, and $x_{i,3}$ is the type of hurricane, $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ is the change of latitude longitude, and wind speed between $t-6$ and $t$, and $\epsilon_{i,t}$ follows a normal distributions with mean zero and variance $\sigma^2$, independent across $t$.
+
+
+In the model, $\boldsymbol{\beta}_{i} = (\beta_{0,i},\beta_{1,i},...,\beta_{7,i})$ are the random coefficients associated the $i$th hurricane, we assume that 
+
+$$\boldsymbol{\beta}_{i} \sim N(\boldsymbol{\beta}, \boldsymbol{\Sigma})$$
+follows a multivariate normal distributions with mean $\boldsymbol{\beta}$ and covariance matrix $\Sigma$.
+
+
+\paragraph{Prior distributions}
+
+
+We assume the following non-informative or weak prior distributions for $\sigma^2$, $\boldsymbol{\beta}$ and $\Sigma$.
+$$P(\sigma^2) \propto \frac{1}{\sigma^2};\quad P(\boldsymbol{\beta})\propto 1;\quad P(\Sigma^{-1}) \propto 
+|\Sigma|^{-(d+1)} \exp(-\frac{1}{2}\Sigma^{-1})$$
+d is dimension of $\beta$.
+
+
+## Design a MCMC algorithm to estiamte the posterior distributions of the model parameters, and complete the following  tasks:
+
+1. Construct their 95% credibility intervals for $\boldsymbol{\beta}$. What we learn from the models? Is there evidence support that the statement that "the hurricane wind speed has been increasing over years". 
+
+2. How well does this Bayesian model track the individual hurricanes?  
+
+
+3. Write a summary statement of your findings and comment on the proposed Bayesian model.
+```{r, include = F}
+library(tidyverse)
+library(lubridate)
+library(matrixcalc)
+library(truncnorm)
+library(mvtnorm)
+```
+
+Need to filter times into the 6 hour intervals: 0:00:00, 6:00:00, 12:00:00, 18:00:00. Some times are at random intervals but we have no 6 hours ahead or before so we ignore those cases. 
+```{r}
+# data cleaning
+data = read.csv("./hurrican356.csv")
+shift <- function(x, n=1){
+  c(x[-(seq(n))], rep(NA, n))
+  }
+data1 = read.csv("hurrican356.csv") %>%
+  janitor::clean_names() %>%
+  filter(nature != "NR") %>%
+  mutate(year = season,
+         date_hour = time) %>%
+  separate(date_hour, into = c("date", "hour"), sep = " ") %>%
+  filter(hour == "00:00:00)" | hour == "06:00:00)" | hour == "12:00:00)" | hour == "18:00:00)") %>%
+  mutate(hour = str_replace(hour, ":00:00\\)", ""),
+         hour = as.numeric(hour),
+         date = str_replace(date, "\\(", ""),
+         date = yday(date),
+         nature = as.numeric(as.factor(nature))) %>%
+  group_by(id) %>%
+  mutate(delta1 = c(NA, diff(latitude)),
+         delta2 = c(NA, diff(longitude)),
+         delta3 = c(NA, diff(wind_kt)),
+         latitude_d = shift(latitude),
+         longitude_d = shift(longitude),
+         windkt_d = shift(wind_kt)) %>%
+  ungroup() %>%
+  na.omit() %>%
+  select(id, latitude, longitude, wind_kt, latitude_d, longitude_d, windkt_d, date, year, nature, delta1, delta2, delta3)
+```
+
+```{r}
+#split the data into train and test
+set.seed(123)
+id = unique(data1$id)
+num_id = length(id)
+train_id = sample(id, 0.8*num_id)
+train_data = data1[which(data1$id %in% train_id),] %>%
+  select(-id)
+```
+
+```{r}
+# Starting points
+set.seed(111)
+rho = rep(0.8, 3)
+sigma = bayesm::rwishart(3,diag(0.1,3))$IW
+sigma = c(sigma[1,], sigma[2,c(2,3)], sigma[3,3])
+beta = rep(0.005,21)
+# Density function.
+# for each yi
+logdy = function(obs, beta, rho, sigma){
+  x = c(1,obs[7:12])
+  y = obs[1:3]
+  mu = beta %*% x + rho*obs[1:3]
+  dy = dmvnorm(obs[4:6], mean = mu, sigma = sigma)
+  return(log(dy))
+  }
+#traintest = train_data[c(1:100),]
+#betatest = rep(0.008,21)
+#apply(traintest, 1, logdy, beta.=betatest)
+logdensity = function(data=train_data, beta.=beta, rho.=rho, sigma.=sigma){
+  beta_m = matrix(beta.,3)
+  sigma_m = matrix(c(sigma.[c(1:3)], sigma.[2], sigma.[c(4,5)], sigma.[c(3,5)], sigma.[6]), 3)
+  logdy = apply(data, 1, logdy, beta=beta_m, rho=rho., sigma=sigma_m)
+  logdens = sum(logdy) + log(dmvnorm(beta., rep(0,21), diag(1,21))) + log(dtruncnorm(rho.[1], a=0, b=1, mean = 0.5, sd = 0.2)) + log(dtruncnorm(rho.[2], a=0, b=1, mean= 0.5, sd = 0.2)) + log(dtruncnorm(rho.[3], a=0, b=1, mean = 0.5, sd = 0.2)) + log(MCMCpack::diwish(sigma_m, 3, diag(0.1,3)))
+  return(logdens)
+  }
+```
+
+```{r}
+# MH
+regularMHstep = function(startpars, niter = 1000, rhoa, betaa, sigmaa){
+  beta_m = matrix(NA, niter, 21)
+  rho_m = matrix(NA, niter, 3)
+  sigma_m = matrix(NA, niter, 6)
+  beta_m[1,] = startpars$beta
+  rho_m[1,] = startpars$rho
+  sigma_m[1,] = startpars$sigma
+  for (i in 2:1000) { # correlated issue
+    print(str_c("##################### ", i, "/",niter, " #####################"))
+    temp_beta = beta_m[i-1,] + runif(21,-1,1)*beta_a
+    temp_rho = rho_m[i-1,] + runif(3,-1,1)*rho_a
+    temp_sigma = sigma_m[i-1,] + runif(6,-1,1)*sigma_a
+    temp_sigma_m = matrix(c(temp_sigma[c(1:3)], temp_sigma[2], temp_sigma[c(4,5)], temp_sigma[c(3,5)], temp_sigma[6]), 3)
+    if (sum(ifelse(temp_rho<1, 0, 1))==0 & is.positive.definite(temp_sigma_m)) {
+      if (log(runif(1)) < logdensity(beta.=temp_beta, rho.=temp_rho, sigma.=temp_sigma) - logdensity(beta.=beta_m[i-1,],
+                                                                                                     rho.=rho_m[i-1,],
+                                                                                                     sigma.=sigma_m[i-1,])){
+        beta_m[i,] = temp_beta
+        rho_m[i,] = temp_rho
+        sigma_m[i,] = temp_sigma
+        }
+      else{
+        beta_m[i,] = beta_m[i-1,]
+        rho_m[i,] = rho_m[i-1,]
+        sigma_m[i,] = sigma_m[i-1,]
+        }}
+    else{
+      beta_m[i,] = beta_m[i-1,]
+      rho_m[i,] = rho_m[i-1,]
+      sigma_m[i,] = sigma_m[i-1,]
+    }
+    }
+  for (i in 1001:niter) { # correlated issue
+    print(str_c("##################### ", i, "/",niter, " #####################"))
+    temp_beta = beta_m[i-1,] + runif(21,-1,1)*beta_a/2
+    temp_rho = rho_m[i-1,] + runif(3,-1,1)*rho_a/2
+    temp_sigma = sigma_m[i-1,] + runif(6,-1,1)*sigma_a/2
+    temp_sigma_m = matrix(c(temp_sigma[c(1:3)], temp_sigma[2], temp_sigma[c(4,5)], temp_sigma[c(3,5)], temp_sigma[6]), 3)
+    if (sum(ifelse(temp_rho<1, 0, 1))==0 & is.positive.definite(temp_sigma_m)) {
+      if (log(runif(1)) < logdensity(beta.=temp_beta, rho.=temp_rho, sigma.=temp_sigma) - logdensity(beta.=beta_m[i-1,],
+                                                                                                     rho.=rho_m[i-1,],
+                                                                                                     sigma.=sigma_m[i-1,])){
+        beta_m[i,] = temp_beta
+        rho_m[i,] = temp_rho
+        sigma_m[i,] = temp_sigma
+        }
+      else{
+        beta_m[i,] = beta_m[i-1,]
+        rho_m[i,] = rho_m[i-1,]
+        sigma_m[i,] = sigma_m[i-1,]
+        }}
+    else{
+      beta_m[i,] = beta_m[i-1,]
+      rho_m[i,] = rho_m[i-1,]
+      sigma_m[i,] = sigma_m[i-1,]
+    }
+    }
+  return(list(est_beta = beta_m, est_rho = rho_m, est_sigma = sigma_m))
+  }
+```
+
+```{r}
+# starting points
+startpars = list(rho = rho, beta = beta, sigma = sigma)
+rho_a = c(0.005,0.005,0.01)
+sigma_a = rep(0.5, 6)
+beta_a = c(rep(0.01, 3), rep(0.0005, 2), 0.001, rep(0.0001, 3), rep(0.005,6), 0.01,rep(0.005, 5))
+set.seed(123)
+MHresults = regularMHstep(startpars, niter = 2000, rhoa = rho_a, betaa = beta_a, sigmaa = sigma_a)
+```
+
+```{r}
+# accept rate
+uni_beta = rep(NA,21)
+for (i in 1:21){
+  uni_beta[i] = length(unique(MHresults$est_beta[1:100,i]))
+  }
+uni_beta
+uni_sigma = rep(NA,6)
+for (i in 1:6) {
+  uni_sigma[i] = length(unique(MHresults$est_sigma[1:100,i]))
+  }
+uni_sigma
+uni_rho = rep(NA,3)
+for (i in 1:3) {
+  uni_rho[i] = length(unique(MHresults$est_rho[1:100,i]))
+  }
+uni_rho
+```
+
+```{r}
+# print chain plots
+niter = 2000
+beta_results = as.data.frame(MHresults$est_beta) %>%
+  mutate(x = 1:niter) %>%
+  gather(key = beta, value = value, V1:V21) %>%
+  mutate(beta = str_replace(beta, "V", ""))
+beta_plot = ggplot(beta_results, aes(x = x, y = value, color = beta)) +
+  geom_line()
+beta_plot
+
+rho_results = as.data.frame(MHresults$est_rho) %>%
+  mutate(x = 1:niter) %>%
+  gather(key = rho, value = value, V1:V3)
+rho_plot = ggplot(rho_results, aes(x = x, y = value, color = rho)) +
+  geom_line()
+rho_plot
+
+sigma_results = as.data.frame(MHresults$est_sigma) %>%
+  mutate(x = 1:niter) %>%
+  gather(key = sigma, value = value, V1:V6)
+sigma_plot = ggplot(sigma_results, aes(x = x, y = value, color = sigma)) +
+  geom_line()
+sigma_plot
+```
+
+```{r}
+# estimates
+hat_sigmas = MHresults$est_sigma
+hat_rhos = MHresults$est_rho
+hat_betas = MHresults$est_beta
+hatsigma = as.matrix(hat_sigmas[1500:nrow(hat_sigmas),])
+hatrho = as.matrix(hat_rhos[1500:nrow(hat_rhos),])
+hatbeta = as.matrix(hat_betas[1500:nrow(hat_betas),])
+hat_sigma = apply(hatsigma,2, mean)
+hat_rho = apply(hatrho,2,mean)
+hat_beta = apply(hatbeta,2,mean)
+hat_sigmam = matrix(c(hat_sigma[c(1:3)], hat_sigma[2], hat_sigma[c(4,5)], hat_sigma
+                      [c(3,5)], hat_sigma[6]), 3)
+hat_betam = matrix(hat_beta,3)
+hat_sigmam
+hat_betam
+hat_rho
+ci_sigma = apply(hatsigma, 2, quantile, probs = c(0.025, 0.975))
+ci_rho = apply(hatrho, 2, quantile, probs = c(0.025, 0.975))
+ci_beta = apply(hatbeta, 2, quantile, probs = c(0.025, 0.975))
+rbind(hat_sigma, ci_sigma)
+rbind(hat_rho, ci_rho)
+rbind(hat_beta, ci_beta)
+```
+
+```{r}
+# estimates
+hat_sigmas = MHresults$est_sigma
+hat_rhos = MHresults$est_rho
+hat_betas = MHresults$est_beta
+hatsigma = as.matrix(hat_sigmas[1500:nrow(hat_sigmas),])
+hatrho = as.matrix(hat_rhos[1500:nrow(hat_rhos),])
+hatbeta = as.matrix(hat_betas[1500:nrow(hat_betas),])
+hat_sigma = apply(hatsigma,2, mean)
+hat_rho = apply(hatrho,2,mean)
+hat_beta = apply(hatbeta,2,mean)
+hat_sigmam = matrix(c(hat_sigma[c(1:3)], hat_sigma[2], hat_sigma[c(4,5)], hat_sigma[c(3,5)], hat_sigma[6]), 3)
+hat_betam = matrix(hat_beta,3)
+hat_sigmam
+hat_betam
+hat_rho
+ci_sigma = apply(hatsigma, 2, quantile, probs = c(0.025, 0.975))
+ci_rho = apply(hatrho, 2, quantile, probs = c(0.025, 0.975))
+ci_beta = apply(hatbeta, 2, quantile, probs = c(0.025, 0.975))
+rbind(hat_sigma, ci_sigma)
+rbind(hat_rho, ci_rho)
+rbind(hat_beta, ci_beta)
+```
