@@ -1,9 +1,9 @@
 \documentclass[12pt]{article}
 \usepackage[utf8]{inputenc}
 
-\title{Posterial distribution generation}
-\author{}
-\date{}
+\title{Posteria distribution deriviation}
+\author{Qetsiyah Wang and Wenhao Gou}
+\date{2021.4.22}
 
 \usepackage[margin=1in]{geometry}
 \usepackage{indentfirst}
@@ -33,9 +33,10 @@ $$ + \beta_{5,i}\Delta_{i,1}(t)+\beta_{6,i}\Delta_{i,2}(t) +\beta_{7,i}\Delta_{i
 \end{enumerate}
 
 \section{Distributon and priors:}
-    Marginal distributions:
+    Marginal distributions for $Y_{i,t+6}$:
     \begin{align*}
-        f((Y_{i,t+6})|\mu_i, \sigma) &\sim N(\mu_{i,t},\sigma^2) \\
+        f(Y_{i,t+6}|\boldsymbol{\beta}_{i}, \sigma) &\sim N(\mu_{i,t},\sigma^2) \\
+        \mu_{i,t} &= Y_i(t+6) - \epsilon_i(t)\\
         \boldsymbol{\beta}_{i} &\sim N(\boldsymbol{\beta}, \boldsymbol{\Sigma}) 
     \end{align*}
     
@@ -43,7 +44,7 @@ $$ + \beta_{5,i}\Delta_{i,1}(t)+\beta_{6,i}\Delta_{i,2}(t) +\beta_{7,i}\Delta_{i
     \begin{align*}
         f(\sigma^2) &\propto \frac{1}{\sigma^2}\\
         f(\boldsymbol{\beta}) &\propto 1 \\
-        f(\boldsymbol{\Sigma}^{-1}) &\propto |\Sigma|^{-d-1} \exp\{-\frac{1}{2}\boldsymbol{\Sigma}^{-1}\} 
+        f(\boldsymbol{\Sigma}^{-1}) &\propto |\boldsymbol{\Sigma}|^{-d-1} \exp\{-\frac{1}{2}tr(\boldsymbol{\Sigma}^{-1})\} 
     \end{align*}
 
 \section{Hierarchical model structure:}
@@ -62,10 +63,7 @@ $$ + \beta_{5,i}\Delta_{i,1}(t)+\beta_{6,i}\Delta_{i,2}(t) +\beta_{7,i}\Delta_{i
 
 \section{Posterior Distribution Inference:}
 
-
-1. For $\pi(\boldsymbol{\beta_i}|.):$
-
-Let:
+Suppose for hurricane $i$, we have $t_i$ observations which can be used to build model, denote following matrixs for response and predictors for hurricane $i$:
 $$\boldsymbol{Y_i} = (Y_{i,1}, Y_{i,2}, \dots, Y_{i,t_i})^T$$
 $$\boldsymbol{X_i} = \begin{bmatrix}
     x_{i,1,1} & x_{i,2,1} & \dots & x_{i,8,1}\\
@@ -74,52 +72,85 @@ $$\boldsymbol{X_i} = \begin{bmatrix}
     x_{i,1,t_i} & x_{i,2,t_i} & \dots & x_{i,8,t_i} \\
 \end{bmatrix}_{t_i \times 8}$$
 
-The posteria will be:
+1. For $\pi(\boldsymbol{\beta_i}|.):$
 \begin{align*}
     \pi(\boldsymbol{\beta_i}|.) &\propto f(\boldsymbol{Y_i}|\boldsymbol{\beta_i}, \sigma^2) f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1}) \\
-    &\propto \prod^{t_i}_{t=1} \bigg(\sigma^{-1}\exp\{{-\frac{(Y_{i,t} - \mu_{i,t})^2}{2\sigma^2}\}}\bigg)\bigg(\frac{1}{\sqrt{|\boldsymbol{\Sigma}|}} \exp \{ -\frac{1}{2} (\boldsymbol{\beta_i} - \boldsymbol{\beta})^T\boldsymbol{\Sigma^{-1}}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\} \bigg) \\
+    &\propto \bigg(\prod^{t_i}_{t=1} \sigma^{-1}\exp\{{-\frac{(Y_{i,t} - \mu_{i,t})^2}{2\sigma^2}\}}\bigg)\bigg(\frac{1}{\sqrt{|\boldsymbol{\Sigma}|}} \exp \{ -\frac{1}{2} (\boldsymbol{\beta_i} - \boldsymbol{\beta})^T\boldsymbol{\Sigma^{-1}}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\} \bigg) \\
     &\propto \exp\{-\frac{1}{2}\bigg(\sum_{t = 1}^{t_i}\sigma^{-2}(Y_{i,t} - \boldsymbol{X_{i,t}}\boldsymbol{\beta_i})^2 + (\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma^{-1}}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\bigg)\} \\
-    &\propto  \exp\{-\frac{1}{2}\bigg((\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i})^T(\sigma^{-2}\boldsymbol{I}_{t_i \times t_i})(\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i}) + (\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}_{8 \times 8}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\bigg)\} \\
-    &\propto \exp\{-\frac{1}{2}((\sigma_i^2(X_i^TX_i)^{-1}) + \Sigma^{-1})^{-1}]((X_i^TX_i)^{-1}\Sigma^{-1}\boldsymbol{\beta} + I\sigma_i^{-2}X_i^TY_{it}))^T((\sigma_i^2(X_i^TX_i)^{-1} + \Sigma^{-1})\\
-    &((X_i^TX_i)^{-1}\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))\}
+    &\propto  \exp\{-\frac{1}{2}\bigg((\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i})^T(\sigma^{-2}\boldsymbol{I}_{t_i \times t_i})(\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i}) + (\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}_{8 \times 8}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\bigg)\} 
 \end{align*}
 
-So: 
-$$\boldsymbol{\beta_i} \sim N(\boldsymbol{K}((X_i^TX_i)^{-1}\Sigma^{-1}\boldsymbol{\beta} + \sigma^{-2}X_i^TY_{i}), K)$$
+For the expnential term:
+\begin{align*}
+&\;\;\;\;(\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i})^T(\sigma^{-2}\boldsymbol{I}_{t_i \times t_i})(\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i}) + (\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}_{8 \times 8}(\boldsymbol{\beta_i} - \boldsymbol{\beta}) \\
+&  = \boldsymbol{Y_i}^T \sigma^{-2} \boldsymbol{I}\boldsymbol{Y_i}^T  + \boldsymbol{\beta_i}^T\boldsymbol{X_i}^T\sigma^{-2} \boldsymbol{I}\boldsymbol{X_i}\boldsymbol{\beta_i} - 2 \boldsymbol{Y_i}^T \sigma^{-2}\boldsymbol{I}\boldsymbol{X_i}\boldsymbol{\beta_i}  \\
+& \;\;\;\;\;+ \boldsymbol{\beta_i}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i} + \boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta} - 2\boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i} \\
+& = \boldsymbol{Y_i}^T \sigma^{-2} \boldsymbol{I}\boldsymbol{Y_i}^T + \boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta} + \boldsymbol{\beta_i}^T(\boldsymbol{\Sigma}^{-1} + \boldsymbol{X_i}^T\sigma^{-2} \boldsymbol{I}\boldsymbol{X_i})\boldsymbol{\beta_i} \\
+&\;\;\;\;\;-2(\boldsymbol{Y_i}^T\sigma^{-2}\boldsymbol{I}\boldsymbol{X_i} + \boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1})\boldsymbol{\beta_i} \\
+& = \boldsymbol{R} + \boldsymbol{\beta_i}^T\boldsymbol{V}\boldsymbol{\beta_i} - 2\boldsymbol{M}\boldsymbol{\beta_i}
+\end{align*}
 
-where:  $$K = ((X_i^TX_i)^{-1}\Sigma^{-1} + \sigma^{-2}(X_i^TX_i)^{-1})^{-1}$$
+Where:
+\begin{align*}
+    \boldsymbol{R} &= \boldsymbol{Y_i}^T \sigma^{-2} \boldsymbol{I}\boldsymbol{Y_i}^T + \boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta}\\
+    \boldsymbol{V} & = \boldsymbol{\Sigma}^{-1} + \sigma^{-2}\boldsymbol{X_i}^T\boldsymbol{X_i} \\
+    \boldsymbol{M} & = \sigma^{-2}\boldsymbol{Y_i}^T\boldsymbol{X_i} + \boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1}
+\end{align*}
 
-$$\propto \exp\{-\frac{1}{2}((\sigma_i^2(X_i^TX_i)^{-1}) + \Sigma^{-1})^{-1}]((X_i^TX_i)^{-1}\Sigma^{-1}\boldsymbol{\beta} + I\sigma_i^{-2}X_i^TY_{it}))^T((\sigma_i^2(X_i^TX_i)^{-1} $$
+Then, the exponential term can be reduced to:
+$$(\boldsymbol{\beta_i} - \boldsymbol{V^{-1}M})^T\boldsymbol{V}(\boldsymbol{\beta_i} - \boldsymbol{V^{-1}M})  - \boldsymbol{M}^{T}\boldsymbol{V^{-1}}\boldsymbol{M}^{T} + \boldsymbol{R}$$
 
-$$+ \Sigma^{-1})((X_i^TX_i)^{-1}\Sigma^{-1}\beta + I\sigma_i^{-2}X_i^TY_{it}))\}$$
+We can ignore the latter 2 term as it is not related to $\boldsymbol{\beta_i}$. That indicate:
+$$\pi(\boldsymbol{\beta_i}|.) \sim N(\boldsymbol{V^{-1}M}, \boldsymbol{V^{-1}})$$
+
 
 2.For $\pi(\sigma^2|.):$
 \begin{align*}
-    \pi(\sigma^2|.) &= \propto f(\boldsymbol{Y}|\boldsymbol{\beta_i}, \sigma^2) \cdot \pi(\sigma^2) \\
+    \pi(\sigma^2|.) & \propto f(\boldsymbol{Y}|\boldsymbol{\beta_i}, \sigma^2) \cdot \pi(\sigma^2) \\
     &\propto \bigg(\prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-1}\exp\{{-\frac{(Y_{i,t} - \mu_{i,t})^2}{2\sigma^2}\}} \bigg)\frac{1}{\sigma^2}\\
-&\propto (\sigma^2)^{-1-\frac{\sum t_i}{2}}\prod^n_{i=1}\prod^{t_i}_{t=1} \exp\{{-\frac{(Y_{i,t} - \mu_{i,t})^2}{2\sigma^2}\}} \\
-&\propto \sigma^{-2-\sum t_i}exp{\{-\frac{1}{2}\sum^n_{i=1}\sum^{ti}_{t=1}(Y_{i,t} - \mu_{i,t})^2\sigma^{-2}\}} \\
+    &\propto (\sigma^2)^{-1-\frac{\sum t_i}{2}}\prod^n_{i=1}\prod^{t_i}_{t=1} \exp\{{-\frac{(Y_{i,t} - \mu_{i,t})^2}{2\sigma^2}\}} \\
+    &\propto \sigma^{-2-\sum t_i}\exp{\{-\frac{1}{2\sigma^2}\sum^n_{i=1}\sum^{ti}_{t=1}(Y_{i,t} - \mu_{i,t})^2\}} 
 \end{align*}
 
-where, 
-$$\sigma^2 \sim InvGamma(\frac{\sum t_i}{2}, \frac{SSR}{2})$$ 
+So:  
+$$\sigma^2 \sim \text{InvGamma}(\frac{1}{2}\sum_{i=1}^n t_i, \frac{1}{2}\sum^n_{i=1}\sum^{ti}_{t=1}(Y_{i,t} - \mu_{i,t})^2)$$ 
 
-$$SSR = \sum^n_{i=1}\sum^{ti}_{t=1}(Y_{it} - X_i\beta_i)^T(Y_{it}- X_i\beta_i)$$
+3. For $\pi(\boldsymbol{\Sigma}^{-1}|.)$:
+\begin{align*}
+    \pi(\boldsymbol{\Sigma}^{-1}|.) &\propto f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1})f(\boldsymbol{\Sigma}^{-1}) \\
+    &\propto \bigg(\prod^n_{i=1}\boldsymbol{\Sigma}^{-\frac{1}{2}} \exp\{-\frac{1}{2}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta}) \} \bigg) |\boldsymbol{\Sigma}|^{-d-1} \exp\{-\frac{1}{2}\boldsymbol{\Sigma}^{-1}\} \\
+    &\propto \boldsymbol{\Sigma}^{-\frac{n}{2}-d-1} \exp\{-\frac{1}{2}\boldsymbol{\Sigma^{-1}}-\frac{1}{2}\sum^n_{i=1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})\} \\
+    &\propto \boldsymbol{\Sigma}^{-\frac{n}{2}-d-1} \exp \{ \frac{1}{2}\bigg(tr(\boldsymbol{\Sigma^{-1}}) + \sum^n_{i=1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})\bigg)\}
+\end{align*}
 
-3. $\Sigma^{-1}|.$:
-$$\pi(\Sigma^{-1}|.) = \prod^n_{i=1} \pi(Y_{it}|\beta_i,\beta, \Sigma^{-1}, \sigma^2) \cdot \pi(\beta_i|\beta, \Sigma^{-1})\cdot \pi(\Sigma^{-1})$$
-$$\propto \Sigma^{-n}exp{\{-\frac{1}{2}\sum^n_{i=1}(\beta_i-\beta)^T\Sigma^{-1}(\beta_i-\beta)\}}\cdot|\Sigma|^{-(d+1)}exp{\{-\frac{1}{2}\Sigma^{-1}\}}$$
-$$\propto \Sigma^{-(n/2+d+1)}exp{\{-\frac{1}{2}(\sum^n_{i=1}(\beta_i-\beta)^T(\beta_i-\beta)+1)n\Sigma^{-1}\}}$$
-$$\Sigma^{-1} \sim InvWhishart(\frac{n}{2}, nSSR_{\beta_i}),\ where\ SSR_{\beta_i} = \sum^n_{i=1}((X_i^TX_i)^{-1}\beta_i - (X_i^TX_i)^{-1}\beta)^2$$
-
-4. $\beta|.$: 
-$$\pi(\beta|.) = \pi(Y_{it}|.)\cdot \pi(\beta_i|.) \cdot \pi(\beta) \propto \pi(\beta_i|.)$$
-$$\propto exp{\{\frac{1}{2}\sum^n_{i=1}((X_i^TX_i)^{-1}(\beta_i - \beta))^T((X_i^TX_i)^{-1}(\beta_i - \beta))((X_i^TX_i)^{-1}\Sigma^{-1})\}}$$
-$$\beta \sim N(\hat{\beta_i}, \Sigma^{-1}((X_i^TX_i)^{-1}),\ where\ \hat{\beta} = (X_i^TX_i)^{-1}X_i^TY_{i}$$
-Or, according to the Central Limit Theorem,
-$$\frac{\beta_i - \beta}{\sqrt{\Sigma^{-1}/n}},\ \beta = \bar{\beta_i}\ \text{for}\ i = 1, 2,...,n$$
+That indicate: 
+$$\boldsymbol{\Sigma}^{-1} \sim \text{InvWhishart}\bigg(\frac{n}{2}, tr(\boldsymbol{\Sigma^{-1}}) + \sum^n_{i=1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})\bigg)$$
 
 
+\newpage
+4. For $\pi(\boldsymbol{\beta}|.)$: 
+\begin{align*}
+    \pi(\boldsymbol{\beta}|.) &\propto f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1})f(\boldsymbol{\beta}) \\
+    &\propto \bigg(\prod^n_{i=1} \exp\{-\frac{1}{2}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta}) \} \bigg) \\
+    &\propto \exp \{ -\frac{1}{2}\bigg(\sum_{i = 1}^{n} (\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})\bigg)\} \\
+    &\propto \exp \{-\frac{1}{2}\bigg(\sum_{i = 1}^{n} \boldsymbol{\beta_i}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i}+\boldsymbol{\beta}^Tn\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta}-\sum_{i = 1}^{n}2\boldsymbol{\beta_i}^T\boldsymbol{\Sigma^{-1}}\boldsymbol{\beta}\bigg)\}
+\end{align*}
 
+For the exponential term, if we set: 
+\begin{align*}
+    \boldsymbol{V} &= n\boldsymbol{\Sigma}^{-1} \\
+    \boldsymbol{R} &= \sum_{i = 1}^{n} \boldsymbol{\beta_i}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i} \\
+    \boldsymbol{M} &= \sum_{i = 1}^{n}\bigg(\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i}\bigg) 
+\end{align*}
+
+Then, use the same technique when generating $\boldsymbol{\beta_i}$
+$$R + \boldsymbol{\beta}\boldsymbol{V}
+\boldsymbol{\beta} - 2\boldsymbol{M}\boldsymbol{\beta} \propto (\boldsymbol{\beta} - \boldsymbol{V}^{-1}\boldsymbol{M})^{T}\boldsymbol{V}^{-1}(\boldsymbol{\beta} - \boldsymbol{V}^{-1}\boldsymbol{M})$$
+
+(NOTE: This is the same as using OLS to estimate $\boldsymbol{\beta}$ using all $\boldsymbol{\beta_i}$)
+
+That indicate: 
+
+$$\boldsymbol{\beta} \sim N \bigg(\frac{1}{n}\sum_{i=1}^n \boldsymbol{\beta_i}, \frac{1}{n}\boldsymbol{\Sigma}\bigg)$$
 
 \end{document}
