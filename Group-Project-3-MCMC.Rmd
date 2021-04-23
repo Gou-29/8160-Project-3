@@ -444,3 +444,37 @@ rbind(hat_beta, ci_beta)
 
 Almost every parameters converge after 1500 iterations, so we average last 500 iterations to get estimates of
 parameters. The final parameters estimate are shown below.
+
+
+
+
+
+Gibbs sampling
+```{r}
+# data cleaning
+df = read.csv("./hurrican356.csv") %>% 
+   janitor::clean_names() %>% 
+   rename(year = season) %>% 
+   separate(time, into = c("date", "hour"), sep = " ") %>% 
+   mutate(
+     date = str_remove(date, "\\("),
+     hour = str_remove(hour, "\\)")) %>% 
+  mutate(month = str_match(date, "-\\s*(.*?)\\s*-")) %>% 
+  mutate(month = gsub("[-]", "", month)) %>% 
+   filter(hour == "00:00:00" | hour == "06:00:00" | hour == "12:00:00" | hour == "18:00:00") %>% 
+   mutate(
+     hour = str_replace(hour, ":00:00", ""),
+     hour = as.numeric(hour),
+     date = yday(date) #turn dates into day of year
+   ) %>% 
+   group_by(id) %>% 
+   mutate(
+     delta1 = c(NA, diff(latitude)),
+     delta2 = c(NA, diff(longitude)),
+     delta3 = c(NA, diff(wind_kt))
+   ) %>% 
+   ungroup() %>% 
+   na.omit() %>% 
+   select(id, month, year, nature, delta1, delta2, delta3, altitude, longitude, wind_kt)
+```
+
