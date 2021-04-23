@@ -467,6 +467,16 @@ parameters. The final parameters estimate are shown below.
 
 
 Gibbs sampling
+
+```{r, include = F}
+library(tidyverse)
+library(lubridate)
+library(matrixcalc)
+library(truncnorm)
+library(mvtnorm)
+library(bayesm)
+```
+
 ```{r}
 # data cleaning
 df = read.csv("./hurrican356.csv") %>% 
@@ -475,14 +485,16 @@ df = read.csv("./hurrican356.csv") %>%
    separate(time, into = c("date", "hour"), sep = " ") %>% 
    mutate(
      date = str_remove(date, "\\("),
-     hour = str_remove(hour, "\\)")) %>% 
-  mutate(month = str_match(date, "-\\s*(.*?)\\s*-")) %>% 
-  mutate(month = gsub("[-]", "", month)) %>% 
+     hour = str_remove(hour, "\\)")
+     ) %>% 
+   mutate(month = str_match(date, "-\\s*(.*?)\\s*-")) %>% 
+   mutate(month = gsub("[-]", "", month)) %>% 
    filter(hour == "00:00:00" | hour == "06:00:00" | hour == "12:00:00" | hour == "18:00:00") %>% 
    mutate(
      hour = str_replace(hour, ":00:00", ""),
      hour = as.numeric(hour),
-     date = yday(date) #turn dates into day of year
+     month = month[,1],
+     month = as.factor(month)
    ) %>% 
    group_by(id) %>% 
    mutate(
@@ -492,6 +504,29 @@ df = read.csv("./hurrican356.csv") %>%
    ) %>% 
    ungroup() %>% 
    na.omit() %>% 
-   select(id, month, year, nature, delta1, delta2, delta3, altitude, longitude, wind_kt)
+   select(id, month, year, nature, delta1, delta2, delta3, latitude, longitude, wind_kt)
 ```
 
+```{r}
+test_df = df %>% filter(id == "ALLISON.1989")
+```
+
+```{r}
+gibbs_fxn = function(y, niter = 20, betaistart = rep(1, 8), betastart = 1, sigstart = 0, sig2start = 0) {
+  n = dim(y)[1]
+  betai_m = matrix(NA, niter, 8)
+  beta_m = rep(NA, niter)
+  sig_m = rep(NA, niter)
+  sig2_m = rep(NA, niter)
+  
+  betai_m[1,] = betaistart
+  beta_m[1] = betastart
+  sig_m[1] = sigstart
+  sig2_m[1] = sig2start
+  
+  for(i in 2:niter){
+    beta_m[i] = rnorm(1, mean = 1/n * sum(betai_m[i-1,]), sd = 1/n * sig_m[i-1])
+    sig_m = rwishart(n,diag(sum((betai_m[i-1] - beta_m[i-1])*t(betai_m[i-1,] - beta_m[i-1]))))$IW
+  }
+}
+```
