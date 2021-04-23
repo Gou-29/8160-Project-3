@@ -115,7 +115,7 @@ d is dimension of $\beta$.
 3. Write a summary statement of your findings and comment on the proposed Bayesian model.
 
 
-
+# A Hierarchical Bayesian model for hurricane trajectories. 
 
 ## Introduction
 
@@ -195,15 +195,32 @@ $$\begin{align*}
     &\propto |\boldsymbol{\Sigma}|^{-(n+d+1)/2} \exp \{ -\frac{1}{2}tr\bigg(\boldsymbol{\Sigma^{-1}}(\boldsymbol{I} + \sum_{i=1}^{n}(\boldsymbol{\beta_i}-\boldsymbol{\beta})(\boldsymbol{\beta_i}-\boldsymbol{\beta})^{T})\bigg)\}
 \end{align*}$$
 
-That indicates: 
+That indicate: 
 $$\boldsymbol{\Sigma}^{-1} \sim \text{InvWhishart}\bigg(n,\boldsymbol{I} + \sum_{i=1}^{n}(\boldsymbol{\beta_i}-\boldsymbol{\beta})(\boldsymbol{\beta_i}-\boldsymbol{\beta})^{T}\bigg)$$
+
+4. For $\pi(\boldsymbol{\beta}|.)$: 
+$$\begin{align*}
+    \pi(\boldsymbol{\beta}|.) &\propto f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1})f(\boldsymbol{\beta}) \\
+    &\propto \bigg(\prod^n_{i=1} \exp\{-\frac{1}{2}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta}) \} \bigg) \\
+    &\propto \exp \{ -\frac{1}{2}\bigg(\sum_{i = 1}^{n} (\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})\bigg)\} \\
+    &\propto \exp \{-\frac{1}{2}\bigg(\sum_{i = 1}^{n} \boldsymbol{\beta_i}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i}+\boldsymbol{\beta}^Tn\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta}-\sum_{i = 1}^{n}2\boldsymbol{\beta_i}^T\boldsymbol{\Sigma^{-1}}\boldsymbol{\beta}\bigg)\}
+\end{align*}$$
+
+For the exponential term, if we set: 
+$$\begin{align*}
+    \boldsymbol{V} &= n\boldsymbol{\Sigma}^{-1} \\
+    \boldsymbol{R} &= \sum_{i = 1}^{n} \boldsymbol{\beta_i}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i} \\
+    \boldsymbol{M} &= \sum_{i = 1}^{n}\bigg(\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i}\bigg) 
+\end{align*}$$
+
 Then, use the same technique when generating $\boldsymbol{\beta_i}$
 $$R + \boldsymbol{\beta}\boldsymbol{V}
 \boldsymbol{\beta} - 2\boldsymbol{M}\boldsymbol{\beta} \propto (\boldsymbol{\beta} - \boldsymbol{V}^{-1}\boldsymbol{M})^{T}\boldsymbol{V}^{-1}(\boldsymbol{\beta} - \boldsymbol{V}^{-1}\boldsymbol{M})$$
 
 (NOTE: This is the same as using OLS to estimate $\boldsymbol{\beta}$ using all $\boldsymbol{\beta_i}$)
 
-That indicates: 
+That indicate: 
+
 $$\boldsymbol{\beta} \sim N \bigg(\frac{1}{n}\sum_{i=1}^n \boldsymbol{\beta_i}, \frac{1}{n}\boldsymbol{\Sigma}\bigg)$$
 
 ### Markov Chain Monte Carlo
