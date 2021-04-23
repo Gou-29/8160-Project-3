@@ -44,7 +44,7 @@ $$ + \beta_{5,i}\Delta_{i,1}(t)+\beta_{6,i}\Delta_{i,2}(t) +\beta_{7,i}\Delta_{i
     \begin{align*}
         f(\sigma^2) &\propto \frac{1}{\sigma^2}\\
         f(\boldsymbol{\beta}) &\propto 1 \\
-        f(\boldsymbol{\Sigma}^{-1}) &\propto |\boldsymbol{\Sigma}|^{-d-1} \exp\{-\frac{1}{2}tr(\boldsymbol{\Sigma}^{-1})\} 
+        f(\boldsymbol{\Sigma}^{-1}) &\propto |\boldsymbol{\Sigma}|^{-(d-1)/2} \exp\{-\frac{1}{2}tr(\boldsymbol{\Sigma}^{-1})\} 
     \end{align*}
 
 \section{Hierarchical model structure:}
@@ -118,13 +118,13 @@ $$\sigma^2 \sim \text{InvGamma}(\frac{1}{2}\sum_{i=1}^n t_i, \frac{1}{2}\sum^n_{
 3. For $\pi(\boldsymbol{\Sigma}^{-1}|.)$:
 \begin{align*}
     \pi(\boldsymbol{\Sigma}^{-1}|.) &\propto f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1})f(\boldsymbol{\Sigma}^{-1}) \\
-    &\propto \bigg(\prod^n_{i=1}\boldsymbol{\Sigma}^{-\frac{1}{2}} \exp\{-\frac{1}{2}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta}) \} \bigg) |\boldsymbol{\Sigma}|^{-d-1} \exp\{-\frac{1}{2}\boldsymbol{\Sigma}^{-1}\} \\
-    &\propto \boldsymbol{\Sigma}^{-\frac{n}{2}-d-1} \exp\{-\frac{1}{2}\boldsymbol{\Sigma^{-1}}-\frac{1}{2}\sum^n_{i=1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})\} \\
-    &\propto \boldsymbol{\Sigma}^{-\frac{n}{2}-d-1} \exp \{ \frac{1}{2}\bigg(tr(\boldsymbol{\Sigma^{-1}}) + \sum^n_{i=1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})\bigg)\}
+    &\propto \bigg(\prod^n_{i=1}\boldsymbol{\Sigma}^{-\frac{1}{2}} \exp\{-\frac{1}{2}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta}) \} \bigg) |\boldsymbol{\Sigma}|^{-(d-1)/2} \exp\{-\frac{1}{2}\boldsymbol{\Sigma}^{-1}\} \\
+    &\propto |\boldsymbol{\Sigma}|^{-(n+d+1)/2} \exp\{-\frac{1}{2}tr(\boldsymbol{\Sigma^{-1}})-\frac{1}{2}\sum^n_{i=1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})\} \\
+    &\propto |\boldsymbol{\Sigma}|^{-(n+d+1)/2} \exp \{ -\frac{1}{2}tr\bigg(\boldsymbol{\Sigma^{-1}}(\boldsymbol{I} + \sum_{i=1}^{n}(\boldsymbol{\beta_i}-\boldsymbol{\beta})(\boldsymbol{\beta_i}-\boldsymbol{\beta})^{T})\bigg)\}
 \end{align*}
 
 That indicate: 
-$$\boldsymbol{\Sigma}^{-1} \sim \text{InvWhishart}\bigg(\frac{n}{2}, tr(\boldsymbol{\Sigma^{-1}}) + \sum^n_{i=1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})\bigg)$$
+$$\boldsymbol{\Sigma}^{-1} \sim \text{InvWhishart}\bigg(n,\boldsymbol{I} + \sum_{i=1}^{n}(\boldsymbol{\beta_i}-\boldsymbol{\beta})(\boldsymbol{\beta_i}-\boldsymbol{\beta})^{T}\bigg)$$
 
 
 \newpage
