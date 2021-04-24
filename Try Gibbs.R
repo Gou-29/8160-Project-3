@@ -5,43 +5,76 @@ library(tidyverse)
 library(extraDistr)
 library(matrixsampling)
 
-data = read.csv("hurrican356.csv")
-id = data %>% group_by(Season, ID) %>% summarize(n = n())
-pre.data = data %>%
-  dplyr::select(Wind.kt, X, Month, Season, Nature, Latitude, Longitude) %>%
-  mutate(Month = as.numeric(as.factor(Month)),
-         Nature = as.numeric(as.factor(Nature))) %>% 
-  mutate(X = 1)
+data <-
+  read_csv("./hurrican356.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(x1 = 1) %>%  # for the intercept
+  rename(year = season) %>% 
+  separate(time, into = c("date", "hour"), sep = " ") %>% 
+  mutate(
+    date = str_remove(date, "\\("),
+    hour = str_remove(hour, "\\)")
+  ) %>% 
+  mutate(month = str_match(date, "-\\s*(.*?)\\s*-")) %>% 
+  mutate(month = gsub("[-]", "", month)) %>% 
+  filter(hour == "00:00:00" | hour == "06:00:00" | hour == "12:00:00" | hour == "18:00:00") %>% 
+  mutate(
+    hour = str_replace(hour, ":00:00", ""),
+    hour = as.numeric(hour),
+    month = month[,1],
+    month = as.numeric(month),
+    nature = as.numeric(as.factor(nature))
+  )
 
-pre1 = function(df){
-  delta.lat = sapply(2: nrow(df), function(ii){df[ii, 6] - df[ii-1, 6]})
-  delta.lon = sapply(2: nrow(df), function(iii){df[iii,7] - df[iii-1, 7]})
-  delta.ws = sapply(2: nrow(df), function(iv){df[iv,1] - df[iv-1, 1]})
-  speed = df[-nrow(df),1]
-  res = cbind(df[-1,-c(6,7)], speed, delta.lat, delta.lon, delta.ws)
-  return(res)}
-pre = function(df, id){
-  dat = vector("list", length = nrow(id))
-  id.n = cumsum(c(0, id$n))
-  for (i in 1:nrow(id)){
-    dat[[i]] = df[seq(id.n[i]+1, id.n[i+1]),]}
-  for (i in 1:length(dat)){
-    df = dat[[i]]
-    if (nrow(df) != 1) dat[[i]] = pre1(df)
-    else dat[[i]] = cbind(df[-c(6,7)], df[1] , delta.lat = 0, delta.lon = 0, delta.ws = 0)}
-  return(dat)}
-dat = pre(pre.data, id)
+ids <- unique(data$id)
 
-# obs. 324 have some problem -> just 1 observation.
-# dat[[i]] is full observation of each hurricane
-# please check all code of data processing
+dat <- list(NULL)
 
-# this value is for update sigma:
-sumti <- 0
-for(i in 1:length(dat)){
-  sumti <- sumti + nrow(dat[[i]])
+dfindex = 1
+sumti = 0  # this value is for update sigma:=
+
+i = 1
+while (i <= length(ids)){
+  subdata <-
+    data %>% 
+    filter(id == ids[i])
+  rowcount <- nrow(subdata)
+  # filter observations -> at least 5 observation so at
+  # least 3 observations in the reminder. 
+  if(rowcount < 5) {
+    i = i + 1
+  }else{
+    # Count total number of hurricane and observation:
+    sumti = sumti + rowcount  
+    sub.wind = subdata$wind_kt
+    sub.lat  = subdata$latitude
+    sub.lon  = subdata$longitude
+    
+    dt1 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
+    dt2 = sub.lat[1:(rowcount-2)] - sub.lat[2:(rowcount - 1)]
+    dt3 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
+
+    # Update the dat:
+    redat = tibble(
+      y = sub.wind[3:rowcount],
+      intercept = 1,
+      x1 = subdata$month[3:rowcount],
+      x2 = subdata$year[3:rowcount],
+      x3 = subdata$nature[3:rowcount],
+      x4 = sub.wind[2:(rowcount - 1)],
+      delta1 = dt1,
+      delta2 = dt2,
+      delta3 = dt3
+    ) %>% as.matrix()
+    
+    dat[[dfindex]] = redat
+    
+    i = i + 1
+    dfindex = dfindex + 1
+  }
 }
-sumti
+
+
 
 # functions for all posteria:
 
@@ -91,12 +124,13 @@ bsig = function(betaimat, beta){
   s0 = summatrix + diag(1,8,8)
   bsig = rinvwishart(1, nu = v0, Omega = s0, checkSymmetry = F) # Covariance matrix 8x8 
   bsig = matrix(bsig,nrow = 8, ncol = 8)
-  return(bsig)}
+  return(bsig)
+  }
 
 beta.fun = function(betai, bigsig){
   ols = colMeans(betai)
   n = nrow(betai)
-  beta = mvrnorm(1, mu = ols, Sigma = 1/n * bigsig) # vector 1x8
+  beta = mvrnorm(1, mu = ols, Sigma = 1/n * solve(bigsig)) # vector 1x8
   return(beta)
   }
 
@@ -122,13 +156,42 @@ mcmc = function(dat, ini.beta, ini.bsig, ini.sig, niter = 1000){
     sigma[i] = sigmasq(ssr = betaobj$ssr)
     b.sig[[i]] = bsig(betai = beta.i[[i]], beta[[i-1]])
     beta[[i]] = beta.fun(betai = beta.i[[i]], bigsig = b.sig[[i]])
+    #print(sigma[[i]])
     }
-  return(list(beta.i = beta.i, sigma = sigma, b.sig = b.sig, beta = beta))}
+  return(list(beta.i = beta.i, sigma = sigma, b.sig = b.sig, beta = beta))
+  }
 
 
 # Test the chain
-
 test <- mcmc(dat, 
-             ini.beta = rep(100,8), 
+             ini.beta = rep(1,8), 
              ini.sig = 1, 
-             ini.bsig = diag(1,8,8), niter = 30)
+             ini.bsig = diag(1,8,8), niter = 1000)
+
+betasummary <- tibble(
+  intercept = 0,
+  x1 = 0,
+  x2 = 0,
+  x3 = 0,
+  x4 = 0,
+  delta1 = 0,
+  delta2 = 0,
+  delta3 = 0) 
+
+for (i in 1:length(test$beta)){
+  betasummary <- bind_rows(betasummary,
+                           t(test$beta[[i]]) %>% as.data.frame())
+}
+  
+betasummary  <- 
+  betasummary %>% 
+  slice(-1, -2) %>%
+  dplyr::select(1:8) %>% 
+  mutate(index = 1:(nrow(betasummary)-2)) %>% 
+  pivot_longer(1:8,
+               names_to = "var",
+               values_to = "val")
+betasummary %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
+  geom_line() +
+  facet_grid(~var, nrow = 2, scales = "free")
+
