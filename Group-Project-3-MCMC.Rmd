@@ -77,8 +77,6 @@ mapMonth <- map + facet_wrap(~ Month) +
 mapMonth
 ```
 
-
-
 # A Hierarchical Bayesian model for hurricane trajectories. 
 
 Climate researchers are interested in modeling the hurricane trajectories to forecast the wind speed. Let $t$ be time (in hours) since a hurricane began, and For each hurricane $i$, we denote $Y_{i}(t)$ be the wind speed of the $i$th hurricane at time $t$. The following Bayesian model was suggested.  
@@ -292,3 +290,99 @@ gibbs_fxn = function(y, niter = 20, betaistart = rep(1, 8), betastart = 1, sigst
   }
 }
 ```
+
+```{r, message=FALSE, warning=FALSE}
+
+library(MASS)
+library(tidyverse)
+library(extraDistr)
+library(matrixsampling)
+
+data = read.csv("hurrican356.csv")
+```
+
+## MCMC Code Need re-check and run
+
+```{r, message=FALSE, warning=FALSE}
+
+id = data %>% group_by(Season, ID) %>% summarize(n = n())
+pre.data = data %>%
+  select(Wind.kt, X, Month, Season, Nature, Latitude, Longitude) %>%
+  mutate(Month = as.numeric(as.factor(Month)),
+         Nature = as.numeric(as.factor(Nature)))
+
+#---------Dataset Preparation----------
+pre1 = function(df){
+  delta.lat = sapply(2: nrow(df), function(ii){df[ii, 6] - df[ii-1, 6]})
+  delta.lon = sapply(2: nrow(df), function(iii){df[iii,7] - df[iii-1, 7]})
+  delta.ws = sapply(2: nrow(df), function(iv){df[iv,1] - df[iv-1, 1]})
+  speed = df[-nrow(df),1]
+  res = cbind(df[-1,-c(6,7)], speed, delta.lat, delta.lon, delta.ws)
+  return(res)}
+pre = function(df, id){
+  dat = vector("list", length = nrow(id))
+  id.n = cumsum(c(0, id$n))
+  for (i in 1:nrow(id)){
+    dat[[i]] = df[seq(id.n[i]+1, id.n[i+1]),]}
+  for (i in 1:length(dat)){
+    df = dat[[i]]
+    if (nrow(df) != 1) dat[[i]] = pre1(df)
+    else dat[[i]] = cbind(df[-c(6,7)], df[1] , delta.lat = 0, delta.lon = 0, delta.ws = 0)}
+  return(dat)}
+dat = pre(pre.data, id)
+```
+
+
+```{r}
+
+betai = function(dat, beta, sigma, big.sig){
+  res = vector("list", length = length(dat))
+  # Beta_i function ~ N(V^-1*M, V^-1)
+  for (i in 1:length(dat)){
+    x = dat[[i]][,-1]
+    y = dat[[i]][,1]
+    k = big.sig + sigma^(-1) * t(x) %*% x
+    m = t(x) %*% y * sigma^(-1) + big.sig %*% beta
+    mu = solve(k) %*% m
+    sd = solve(k)
+    bi = mvrnorm(1, mu = mu, Sigma = sd)
+    ssr = sum((y - x %*% bi)^2) # For calculating sigma
+    res[[i]] = list(bi = bi, ssr = ssr)}
+  bi2 = ""
+  ssr2 = ""
+  for (ii in 1:length(res)){
+    bi2 = rbind(bi2, res[[i]]$bi)
+    ssr2 = rbind(ssr2, res[[i]]$ssr)}
+  beta.i = apply(bi2[-1,], 2, as.numeric) # Final beta.i is the 365x8 matrix 
+  ssr = apply(ssr2[-1,], 2, as.numeric) # SSR is the single value for calculating sigma
+  return(list(beta.i = beta.i, ssr = ssr))}
+
+sigma = function(ssr, n = 365){
+  a = 11343/2 # Need re-check
+  b = sum(ssr)/2
+  sig = rinvgamma(1, alpha = a, beta = b) # single value 
+  return(sig)}
+
+bsig = function(n, betai, beta){
+  v0 = n
+  s0 = n * t(betai - beta) %*% (betai - beta)
+  bsig = rinvwishart(1, nu = v0, Omega = s0) # Covariance matrix 8x8 
+  return(bsig)}
+
+beta.fun = function(betai, bigsig){
+  ols = colMeans(betai)
+  beta = mvrnorm(1, mu = ols, Sigma = bigsig) # vector 1x8
+  return(beta)}
+
+mcmc = function(dat, ini.beta, ini.bsig, ini.sig, niter = 1000){
+  beta.i = vector("list", length = niter + 1) # in each iteration, betai - 365x8
+  sigma = rep(NA, niter)
+  b.sig = vector("list", length = niter)
+  beta = matrix(NA, nrow = niter, ncol = 8)
+  beta.i[[1]] = betai(dat, beta = ini.beta, sigma = ini.sig, big.sig = ini.bsig)$beta.i
+  for (i in 1:niter){
+    sigma[i] = sigma(ssr = beta.i[[i]]$ssr)
+    b.sig[i] = bsig(n = 365, betai = beta.i[[i]]$beta.i, ini.beta)
+    beta[i] = beta.fun(betai = beta.i[[i]]$beta.i, bigsig = b.sig[i])
+    beta.i[i + 1] = betai(dat, beta = beta[i], sigma = sigma[i], big.sig = b.sig[i])$beta.i}
+  return(list(beta.i = beta.i, sigma - sigma, b.sig = b.sig, beta = beta))}
