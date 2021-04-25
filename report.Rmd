@@ -615,3 +615,21 @@ ci_beta %>% knitr::kable(caption = "95% Credibility Interval of Betas")
 ```
 
 From table 1 we can see that month of year when the hurricane started, year of the hurricane, and  change in latitude do not have significant impacts on the estimated response as their CI's include 0 (x1, x2, and d2 respectively). Therefore we do not have evidence to support the statement that "hurricane wind speed has been increasing over years."
+
+We compared our models response for predicted wind speed in both the intercept and no intercept model and compared with the real. The following plots show the real trajectory with real wind speed, predicted wind speed of no intercept model, and predicted wind speed of the model with intercept for 3 Hurricanes: Allison, Dean, and Emily.
+
+![Allison Real](./figures/allison_real.jpg)
+![Allison Pred No Intercept](./figures/allison_pred.jpg)
+![Allison Pred W/ Intercept](./figures/allison_pred_intmodel.jpg)
+![Allison Real](./figures/allison_real.jpg)
+
+![Dean Real](./figures/dean_real.jpg)
+![Dean Pred No Intercept](./figures/dean_pred.jpg)
+
+![Dean Pred W/ Intercept](./figures/dean_pred_intmodel.jpg)
+![Emily Real](./figures/emily_real.jpg)
+![Emily Pred No Intercept](./figures/emily_pred.jpg)
+![Emily Pred W/ Intercept](./figures/emily_pred_intmodel.jpg)
+From these plots we can see that the predicted wind speeds from both models are very close to what we see in the real data. The model with the intercept term tended to slightly underestimate the real wind speeds, while the model without the intercept was very on par with the real data.
+
+
