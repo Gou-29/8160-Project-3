@@ -381,3 +381,32 @@ betasummary  <-
 betasummary %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
   geom_line() +
   facet_wrap(~var, nrow = 2, scales = "free")
+
+#CI
+library(bayestestR)
+
+ci_int <- ci(betasummary %>% filter(var == "intercept") %>% pull(val), method = "ETI", ci = 0.95)
+ci_x1 <- ci(betasummary %>% filter(var == "x1") %>% pull(val), method = "ETI", ci = 0.95)
+ci_x2 <- ci(betasummary %>% filter(var == "x2") %>% pull(val), method = "ETI", ci = 0.95)
+ci_x3 <- ci(betasummary %>% filter(var == "x3") %>% pull(val), method = "ETI", ci = 0.95)
+ci_x4 <- ci(betasummary %>% filter(var == "x4") %>% pull(val), method = "ETI", ci = 0.95)
+ci_d1 <- ci(betasummary %>% filter(var == "delta1") %>% pull(val), method = "ETI", ci = 0.95)
+ci_d2 <- ci(betasummary %>% filter(var == "delta2") %>% pull(val), method = "ETI", ci = 0.95)
+ci_d3 <- ci(betasummary %>% filter(var == "delta3") %>% pull(val), method = "ETI", ci = 0.95)
+
+
+ci_beta <- tibble(
+  intercept = c(ci_int$CI_low, ci_int$CI_high),
+  x1 = c(ci_x1$CI_low, ci_x1$CI_high),
+  x2 = c(ci_x2$CI_low, ci_x2$CI_high),
+  x3 = c(ci_x3$CI_low, ci_x3$CI_high),
+  x4 = c(ci_x4$CI_low, ci_x4$CI_high),
+  d1 = c(ci_d1$CI_low, ci_d1$CI_high),
+  d2 = c(ci_d2$CI_low, ci_d2$CI_high),
+  d3 = c(ci_d3$CI_low, ci_d3$CI_high)
+) %>% t()
+
+colnames(ci_beta) = c("2.5%", "97.5%")
+
+## Year corresponds to X2 and the 95% CI includes 0 so we cannot say that the evidence supports the statement that the hurricane wind speed has been increasing over years.\\
+
