@@ -50,9 +50,10 @@ while (i <= length(ids)){
     sub.lat  = subdata$latitude
     sub.lon  = subdata$longitude
     
-    dt1 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
-    dt2 = sub.lat[1:(rowcount-2)] - sub.lat[2:(rowcount - 1)]
-    dt3 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
+    
+    dt1 = sub.lat[1:(rowcount-2)] - sub.lat[2:(rowcount - 1)]
+    dt2 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
+    dt3 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
 
     # Update the dat:
     redat = tibble(
@@ -263,159 +264,70 @@ summary2[[1]]
 summary2[[2]]
 
 
-###### NEW ########
-# Try subsetting the data:
-datup <- data %>% slice(1) %>% slice(-1)
-datdown <- data %>% slice(1) %>% slice(-1)
+#Results
+set.seed(9999)
+test <- mcmc(dat, 
+             ini.beta = c(50,rep(0,7)), 
+             ini.sig = .5, 
+             ini.bsig = diag(.5,8,8), niter = 5000)
 
-# Split into up and down:
-
-for(i in 1:length(ids)){
-  subdf = 
-    data %>% 
-    filter(id == ids[i])
-  
-  # identify max windspeed:
-  index <- which.max(subdf$wind_kt)
-  
-  datup <- bind_rows(datup, subdf[1:index,])
-  datdown <- bind_rows(datdown, subdf[index:nrow(subdf),])
-}
-
-
-dat <- list(NULL)
-
-dfindex = 1
-sumti = 0  # this value is for update sigma:= = as we sub-seted we need to run again.
-
-i = 1
-while (i <= length(ids)){
-  subdata <-
-    datup %>%    # !modify for up!
-    filter(id == ids[i])
-  rowcount <- nrow(subdata)
-  # filter observations -> at least 5 observation so at
-  # least 3 observations in the reminder. 
-  if(rowcount < 5) {
-    i = i + 1
-  }else{
-    # Count total number of hurricane and observation:
-    sumti = sumti + rowcount  
-    sub.wind = subdata$wind_kt
-    sub.lat  = subdata$latitude
-    sub.lon  = subdata$longitude
-    
-    dt1 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
-    dt2 = sub.lat[1:(rowcount-2)] - sub.lat[2:(rowcount - 1)]
-    dt3 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
-    
-    # Update the dat:
-    redat = tibble(
-      y = sub.wind[3:rowcount],
-      intercept = 1,
-      x1 = subdata$month[3:rowcount],
-      x2 = subdata$year[3:rowcount],
-      x3 = subdata$nature[3:rowcount],
-      x4 = sub.wind[2:(rowcount - 1)],
-      delta1 = dt1,
-      delta2 = dt2,
-      delta3 = dt3
-    ) %>% as.matrix()
-    
-    dat[[dfindex]] = redat
-    
-    i = i + 1
-    dfindex = dfindex + 1
-  }
-}
-
-upchain <- mcmc(dat, 
-              ini.beta = rep(5,8), 
-              ini.sig = 1, 
-              ini.bsig = diag(1,8,8), niter = 3000)
-
-summaryup <- summaryplotsfun(upchain)
-summaryup[[1]]
-summaryup[[2]]
-
-#### downchain
-
-dat <- list(NULL)
-dfindex = 1
-sumti = 0  # this value is for update sigma:= = as we sub-seted we need to run again.
-
-i = 1
-while (i <= length(ids)){
-  subdata <-
-    datdown %>%    # !modify for dwon!
-    filter(id == ids[i])
-  rowcount <- nrow(subdata)
-  # filter observations -> at least 5 observation so at
-  # least 3 observations in the reminder. 
-  if(rowcount < 5) {
-    i = i + 1
-  }else{
-    # Count total number of hurricane and observation:
-    sumti = sumti + rowcount  
-    sub.wind = subdata$wind_kt
-    sub.lat  = subdata$latitude
-    sub.lon  = subdata$longitude
-    
-    dt1 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
-    dt2 = sub.lat[1:(rowcount-2)] - sub.lat[2:(rowcount - 1)]
-    dt3 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
-    
-    # Update the dat:
-    redat = tibble(
-      y = sub.wind[3:rowcount],
-      intercept = 1,
-      x1 = subdata$month[3:rowcount],
-      x2 = subdata$year[3:rowcount],
-      x3 = subdata$nature[3:rowcount],
-      x4 = sub.wind[2:(rowcount - 1)],
-      delta1 = dt1,
-      delta2 = dt2,
-      delta3 = dt3
-    ) %>% as.matrix()
-    
-    dat[[dfindex]] = redat
-    
-    i = i + 1
-    dfindex = dfindex + 1
-  }
-}
-
-downchain <- mcmc(dat, 
-                ini.beta = rep(5,8), 
-                ini.sig = 1, 
-                ini.bsig = diag(1,8,8), niter = 5000)
-
-summarydown <- summaryplotsfun(downchain)
-summarydown[[1]]
-summarydown[[2]]
+summary1 <- summaryplotsfun(test)
+summary1[[1]]
+summary1[[2]]
 
 #CI
 library(bayestestR)
 
-ci_int <- ci(betasummary %>% filter(var == "intercept") %>% pull(val), method = "ETI", ci = 0.95)
-ci_x1 <- ci(betasummary %>% filter(var == "x1") %>% pull(val), method = "ETI", ci = 0.95)
-ci_x2 <- ci(betasummary %>% filter(var == "x2") %>% pull(val), method = "ETI", ci = 0.95)
-ci_x3 <- ci(betasummary %>% filter(var == "x3") %>% pull(val), method = "ETI", ci = 0.95)
-ci_x4 <- ci(betasummary %>% filter(var == "x4") %>% pull(val), method = "ETI", ci = 0.95)
-ci_d1 <- ci(betasummary %>% filter(var == "delta1") %>% pull(val), method = "ETI", ci = 0.95)
-ci_d2 <- ci(betasummary %>% filter(var == "delta2") %>% pull(val), method = "ETI", ci = 0.95)
-ci_d3 <- ci(betasummary %>% filter(var == "delta3") %>% pull(val), method = "ETI", ci = 0.95)
+betasummary <- tibble(
+  intercept = 0,
+  x1 = 0,
+  x2 = 0,
+  x3 = 0,
+  x4 = 0,
+  delta1 = 0,
+  delta2 = 0,
+  delta3 = 0) %>% slice(-1)
+
+for (i in 1:length(test$beta)){
+  sub <- t(test$beta[[i]]) %>% as.data.frame()
+  names(sub) <- names(betasummary)
+  betasummary <- bind_rows(betasummary,sub)
+}
+
+ci_int <- ci(betasummary$intercept, method = "ETI", ci = 0.95)
+hat_int <- mean(betasummary$intercept)
+
+ci_x1 <- ci(betasummary$x1, method = "ETI", ci = 0.95)
+hat_x1 <- mean(betasummary$x1)
+
+ci_x2 <- ci(betasummary$x2, method = "ETI", ci = 0.95)
+hat_x2 <- mean(betasummary$x2)
+
+ci_x3 <- ci(betasummary$x3, method = "ETI", ci = 0.95)
+hat_x3 <- mean(betasummary$x3)
+
+ci_x4 <- ci(betasummary$x4, method = "ETI", ci = 0.95)
+hat_x4 <- mean(betasummary$x4)
+
+ci_d1 <- ci(betasummary$delta1, method = "ETI", ci = 0.95)
+hat_d1 <- mean(betasummary$delta1)
+
+ci_d2 <- ci(betasummary$delta2, method = "ETI", ci = 0.95)
+hat_d2 <- mean(betasummary$delta2)
+
+ci_d3 <- ci(betasummary$delta3, method = "ETI", ci = 0.95)
+hat_d3 <- mean(betasummary$delta3)
 
 
 ci_beta <- tibble(
-  intercept = c(ci_int$CI_low, ci_int$CI_high),
-  x1 = c(ci_x1$CI_low, ci_x1$CI_high),
-  x2 = c(ci_x2$CI_low, ci_x2$CI_high),
-  x3 = c(ci_x3$CI_low, ci_x3$CI_high),
-  x4 = c(ci_x4$CI_low, ci_x4$CI_high),
-  d1 = c(ci_d1$CI_low, ci_d1$CI_high),
-  d2 = c(ci_d2$CI_low, ci_d2$CI_high),
-  d3 = c(ci_d3$CI_low, ci_d3$CI_high)
+  intercept = c(ci_int$CI_low, hat_int, ci_int$CI_high),
+  x1 = c(ci_x1$CI_low, hat_x1, ci_x1$CI_high),
+  x2 = c(ci_x2$CI_low, hat_x2, ci_x2$CI_high),
+  x3 = c(ci_x3$CI_low, hat_x3, ci_x3$CI_high),
+  x4 = c(ci_x4$CI_low, hat_x4, ci_x4$CI_high),
+  d1 = c(ci_d1$CI_low, hat_d1, ci_d1$CI_high),
+  d2 = c(ci_d2$CI_low, hat_d2, ci_d2$CI_high),
+  d3 = c(ci_d3$CI_low, hat_d3, ci_d3$CI_high)
 ) %>% t()
 
 colnames(ci_beta) = c("2.5%", "97.5%")
