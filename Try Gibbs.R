@@ -50,9 +50,9 @@ while (i <= length(ids)){
     sub.lat  = subdata$latitude
     sub.lon  = subdata$longitude
     
-    dt1 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
+    dt3 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
     dt2 = sub.lat[1:(rowcount-2)] - sub.lat[2:(rowcount - 1)]
-    dt3 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
+    dt1 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
 
     # Update the dat:
     redat = tibble(
@@ -62,9 +62,9 @@ while (i <= length(ids)){
       x2 = subdata$year[3:rowcount],
       x3 = subdata$nature[3:rowcount],
       x4 = sub.wind[2:(rowcount - 1)],
-      delta1 = dt1,
+      delta1 = dt3,
       delta2 = dt2,
-      delta3 = dt3
+      delta3 = dt1
     ) %>% as.matrix()
     
     dat[[dfindex]] = redat
@@ -117,7 +117,7 @@ bsig = function(betaimat, beta){
   
   summatrix <- diag(0,8,8)
   for(i in 1:nrow(betaimat)){
-    beta.i <- betaimat[1,]
+    beta.i <- betaimat[i,]
     summatrix <- summatrix + (beta.i - beta) %*% t(beta.i - beta)
   }
   
@@ -148,7 +148,7 @@ mcmc = function(dat, ini.beta, ini.bsig, ini.sig, niter = 1000){
   sigma[1] <- ini.sig
   beta[[1]] <- ini.beta
   b.sig[[1]] <- ini.bsig
-  
+  rss <- c(NULL)
   # Do gibbs sampler
   for (i in 2:niter){
     betaobj <- betai(dat, beta = beta[[i-1]], sigma = sigma[i-1], big.sig = b.sig[[i-1]])
@@ -156,9 +156,9 @@ mcmc = function(dat, ini.beta, ini.bsig, ini.sig, niter = 1000){
     sigma[i] = sigmasq(ssr = betaobj$ssr)
     b.sig[[i]] = bsig(betai = beta.i[[i]], beta[[i-1]])
     beta[[i]] = beta.fun(betai = beta.i[[i]], bigsig = b.sig[[i]])
-    #print(sigma[[i]])
+    rss <- c(rss, sum(betaobj$ssr))
     }
-  return(list(beta.i = beta.i, sigma = sigma, b.sig = b.sig, beta = beta))
+  return(list(beta.i = beta.i, sigma = sigma, b.sig = b.sig, beta = beta, rss = rss))
   }
 
 
