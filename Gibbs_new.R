@@ -53,7 +53,7 @@ while (i <= length(ids)){
     dt1 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
     dt2 = sub.lat[1:(rowcount-2)] - sub.lat[2:(rowcount - 1)]
     dt3 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
-
+    
     # Update the dat:
     redat = tibble(
       y = sub.wind[3:rowcount],
@@ -98,11 +98,11 @@ betai = function(dat, beta, sigmasq, big.sig.inv){
   for (ii in 1:length(res)){
     bi2 = rbind(bi2, res[[ii]]$bi)
     ssr2 = rbind(ssr2, res[[ii]]$ssr)
-    }
+  }
   # Final beta.i is the 365x8 matrix 
   # SSR is the single value for calculating sigma
   return(list(beta.i = bi2, ssr = ssr2))
-  }
+}
 
 sigmasq = function(ssr){
   a = sumti/2 # Need re-check
@@ -125,14 +125,14 @@ bsig = function(betaimat, beta){
   bsig = rinvwishart(1, nu = v0, Omega = s0, checkSymmetry = F) # Covariance matrix 8x8 
   bsig = matrix(bsig,nrow = 8, ncol = 8)
   return(bsig)
-  }
+}
 
 beta.fun = function(betai, bigsig){
   ols = colMeans(betai)
   n = nrow(betai)
   beta = mvrnorm(1, mu = ols, Sigma = 1/n * solve(bigsig)) # vector 1x8
   return(beta)
-  }
+}
 
 # Implementation:
 
@@ -157,9 +157,9 @@ mcmc = function(dat, ini.beta, ini.bsig, ini.sig, niter = 1000){
     b.sig[[i]] = bsig(betai = beta.i[[i]], beta[[i-1]])
     beta[[i]] = beta.fun(betai = beta.i[[i]], bigsig = b.sig[[i]])
     #print(sigma[[i]])
-    }
-  return(list(beta.i = beta.i, sigma = sigma, b.sig = b.sig, beta = beta))
   }
+  return(list(beta.i = beta.i, sigma = sigma, b.sig = b.sig, beta = beta))
+}
 
 
 # Test the chain
@@ -254,9 +254,9 @@ warm_beta = c(coef(fit.lm$finalModel)[1], coef(fit.lm$finalModel)[3], coef(fit.l
               coef(fit.lm$finalModel)[11],coef(fit.lm$finalModel)[12])
 
 test2 <- mcmc(dat, 
-             ini.beta = warm_beta, 
-             ini.sig = 1, 
-             ini.bsig = diag(1,8,8), niter = 1000)
+              ini.beta = warm_beta, 
+              ini.sig = 1, 
+              ini.bsig = diag(1,8,8), niter = 1000)
 
 summary2 <- summaryplotsfun(test2)
 summary2[[1]]
@@ -330,9 +330,9 @@ while (i <= length(ids)){
 }
 
 upchain <- mcmc(dat, 
-              ini.beta = rep(5,8), 
-              ini.sig = 1, 
-              ini.bsig = diag(1,8,8), niter = 3000)
+                ini.beta = rep(5,8), 
+                ini.sig = 1, 
+                ini.bsig = diag(1,8,8), niter = 3000)
 
 summaryup <- summaryplotsfun(upchain)
 summaryup[[1]]
@@ -386,9 +386,9 @@ while (i <= length(ids)){
 }
 
 downchain <- mcmc(dat, 
-                ini.beta = rep(5,8), 
-                ini.sig = 1, 
-                ini.bsig = diag(1,8,8), niter = 5000)
+                  ini.beta = rep(5,8), 
+                  ini.sig = 1, 
+                  ini.bsig = diag(1,8,8), niter = 5000)
 
 summarydown <- summaryplotsfun(downchain)
 summarydown[[1]]
