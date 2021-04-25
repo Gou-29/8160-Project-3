@@ -295,6 +295,7 @@ $$\boldsymbol{\beta} \sim N \bigg(Vec(\hat{\beta_i}), \boldsymbol{\Sigma}\ \beta
 
 
 # Results and dicussion
+## Test the chain with the first set of initial value
 ```{r, include=FALSE, message=FALSE, warning=FALSE}
 # Test the chain
 ### first set of initial value
@@ -347,8 +348,12 @@ summary1 <- summaryplotsfun(test)
 summary1[[1]]
 summary1[[2]]
 ```
+
+
 After testing the chain with the first set of initial values, from the density plots, we noticed that for all variables except the intercept, they follow a normal distribution. From the line chart, we see that all variables converged except for the intercept. Therefore, we decided to do a warm start to see whether the problem is solved.
 
+
+## Test the chain with a warm start
 ```{r, include=FALSE, message=FALSE, warning=FALSE}
 #warm start
 warm_df = read.csv("./hurrican356.csv") %>% 
@@ -401,6 +406,153 @@ summary2 <- summaryplotsfun(test2)
 summary2[[1]]
 summary2[[2]]
 ```
-By doing warm start, for the intercept, it's density plot appeared to be a mixture of 2 normal distributions, suggesting that we need to subset the data. The line chart still shows no convergence.
+
+
+By doing warm start, for the intercept, it's density plot appeared to be a mixture of 2 normal distributions, suggesting that we need to subset the data. The line chart still shows no convergence. The nature of the wind speed is: go up first and go down. So we separate it into up intervals and down intervals as one of our predictor, delta3.
+
+
+## Test the chain with subsetted data
+```{r, include=FALSE, message=FALSE, warning=FALSE}
+###### NEW ########
+# Try subsetting the data:
+datup <- data %>% slice(1) %>% slice(-1)
+datdown <- data %>% slice(1) %>% slice(-1)
+
+# Split into up and down:
+
+for(i in 1:length(ids)){
+  subdf = 
+    data %>% 
+    filter(id == ids[i])
+  
+  # identify max windspeed:
+  index <- which.max(subdf$wind_kt)
+  
+  datup <- bind_rows(datup, subdf[1:index,])
+  datdown <- bind_rows(datdown, subdf[index:nrow(subdf),])
+}
+
+
+dat <- list(NULL)
+
+dfindex = 1
+sumti = 0  # this value is for update sigma:= = as we sub-seted we need to run again.
+
+i = 1
+while (i <= length(ids)){
+  subdata <-
+    datup %>%    # !modify for up!
+    filter(id == ids[i])
+  rowcount <- nrow(subdata)
+  # filter observations -> at least 5 observation so at
+  # least 3 observations in the reminder. 
+  if(rowcount < 5) {
+    i = i + 1
+  }else{
+    # Count total number of hurricane and observation:
+    sumti = sumti + rowcount  
+    sub.wind = subdata$wind_kt
+    sub.lat  = subdata$latitude
+    sub.lon  = subdata$longitude
+    
+    dt1 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
+    dt2 = sub.lat[1:(rowcount-2)] - sub.lat[2:(rowcount - 1)]
+    dt3 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
+    
+    # Update the dat:
+    redat = tibble(
+      y = sub.wind[3:rowcount],
+      intercept = 1,
+      x1 = subdata$month[3:rowcount],
+      x2 = subdata$year[3:rowcount],
+      x3 = subdata$nature[3:rowcount],
+      x4 = sub.wind[2:(rowcount - 1)],
+      delta1 = dt1,
+      delta2 = dt2,
+      delta3 = dt3
+    ) %>% as.matrix()
+    
+    dat[[dfindex]] = redat
+    
+    i = i + 1
+    dfindex = dfindex + 1
+  }
+}
+
+upchain <- mcmc(dat, 
+                ini.beta = rep(5,8), 
+                ini.sig = 1, 
+                ini.bsig = diag(1,8,8), niter = 3000)
+
+#### downchain
+
+dat <- list(NULL)
+dfindex = 1
+sumti = 0  # this value is for update sigma:= = as we sub-seted we need to run again.
+
+i = 1
+while (i <= length(ids)){
+  subdata <-
+    datdown %>%    # !modify for dwon!
+    filter(id == ids[i])
+  rowcount <- nrow(subdata)
+  # filter observations -> at least 5 observation so at
+  # least 3 observations in the reminder. 
+  if(rowcount < 5) {
+    i = i + 1
+  }else{
+    # Count total number of hurricane and observation:
+    sumti = sumti + rowcount  
+    sub.wind = subdata$wind_kt
+    sub.lat  = subdata$latitude
+    sub.lon  = subdata$longitude
+    
+    dt1 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
+    dt2 = sub.lat[1:(rowcount-2)] - sub.lat[2:(rowcount - 1)]
+    dt3 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
+    
+    # Update the dat:
+    redat = tibble(
+      y = sub.wind[3:rowcount],
+      intercept = 1,
+      x1 = subdata$month[3:rowcount],
+      x2 = subdata$year[3:rowcount],
+      x3 = subdata$nature[3:rowcount],
+      x4 = sub.wind[2:(rowcount - 1)],
+      delta1 = dt1,
+      delta2 = dt2,
+      delta3 = dt3
+    ) %>% as.matrix()
+    
+    dat[[dfindex]] = redat
+    
+    i = i + 1
+    dfindex = dfindex + 1
+  }
+}
+
+downchain <- mcmc(dat, 
+                  ini.beta = rep(5,8), 
+                  ini.sig = 1, 
+                  ini.bsig = diag(1,8,8), niter = 5000)
+```
+
+## Plots for upchain
+```{r}
+summaryup <- summaryplotsfun(upchain)
+summaryup[[1]]
+summaryup[[2]]
+```
+
+## Plots for downchain
+```{r}
+summarydown <- summaryplotsfun(downchain)
+summarydown[[1]]
+summarydown[[2]]
+```
+
+
+The “upchain” (wind speed increasing monotonically) actually converged in about 2k-3k steps but the "downchain" did not seems to converge. This may due to a bad prior.
+
 
 
