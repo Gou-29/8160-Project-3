@@ -1,0 +1,12 @@
+---
+title: "wenhao part for report"
+author: "Wenhao Gou | wg2364"
+date: "4/25/2021"
+output: html_document
+---
+
+THIS IS THE DISUSSION PART ON INTERCEPT - WENHAO GOU  
+
+# Discussion on MC chain:
+
+We can see that, expected for the 
