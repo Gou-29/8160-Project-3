@@ -341,49 +341,357 @@ colnames(ci_beta) = c("2.5%","Beta_hat", "97.5%")
 
 ci_beta %>% knitr::kable()
 
-## Trajectory Plots
-allison = dt %>% filter(ID == "ALLISON.1989")
-map <- ggplot(data = allison, aes(x = Longitude, y = Latitude)) + 
-  geom_polygon(data = map_data("world"), 
-               aes(x = long, y = lat, group = group), 
-               fill = "gray25", colour = "gray10", size = 0.2) + 
-  geom_path(data = allison, aes(colour = Wind.kt), size = 0.5) + 
-  xlim(-138, -20) + ylim(3, 55) + 
-  labs(x = "", y = "", colour = "Wind \n(knots)") + 
-  theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
-        axis.text.x = element_blank(), axis.text.y = element_blank(), 
-        axis.ticks = element_blank(), panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
+# ## Trajectory Plots (no int data)
+# 
+# ##### Allison
+# allison = dt %>% filter(ID == "ALLISON.1989")
+# 
+# allison_real <- ggplot(data = allison, aes(x = Longitude, y = Latitude)) + 
+#   geom_polygon(data = map_data("world"), 
+#                aes(x = long, y = lat, group = group), 
+#                fill = "gray25", colour = "gray10", size = 0.2) + 
+#   geom_path(data = allison, aes(colour = Wind.kt), size = 0.5) + 
+#   xlim(-138, -20) + ylim(3, 55) + 
+#   labs(x = "", y = "", colour = "Wind \n(knots)") + 
+#   theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+#         axis.text.x = element_blank(), axis.text.y = element_blank(), 
+#         axis.ticks = element_blank(), panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank()) +
+#   ggtitle(paste("Real Trajectory of Hurricane Allison")) 
+# 
+# allison_real
+# 
+# ggsave("allison_real.jpg", allison_real, path = "./figures")
+# 
+# ## isidore is index 15
+# ## d1 is change in lat, d2 is change in long
+# 
+# load("no_b0_results.rda")
+# 
+# isidore_pred = test$beta.i[[1]] %>% as.data.frame()
+# isidore_start = c(allison[1,7], allison[1,8], allison[1,9]) %>% unlist()
+# path = tibble(lat = rep(NA, nrow(isidore_pred) + 1), long = rep(NA, nrow(isidore_pred) + 1),
+#               wind.kt = rep(NA, nrow(isidore_pred) + 1))
+# path$lat[1] = isidore_start[1]
+# path$long[1] = isidore_start[2]
+# path$wind.kt[1] = isidore_start[3]
+# 
+# 
+# for(i in 1:nrow(isidore_pred)){
+#   path$lat[i+1] = path$lat[i] + isidore_pred$delta1[i]
+#   path$long[i+1] = path$long[i] + isidore_pred$delta2[i]
+#   path$wind.kt[i+1] = path$wind.kt[i] + isidore_pred$delta3[i]
+# }
+# path = path[1:29,]
+# 
+# allison_pred <- ggplot(data = path, aes(x = long, y = lat)) + 
+#   geom_polygon(data = map_data("world"), 
+#                aes(x = long, y = lat, group = group), 
+#                fill = "gray25", colour = "gray10", size = 0.2) + 
+#   geom_path(data = path, aes(colour = wind.kt), size = 0.5) + 
+#   xlim(-138, -20) + ylim(3, 55) + 
+#   labs(x = "", y = "", colour = "Wind \n(knots)") + 
+#   theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+#         axis.text.x = element_blank(), axis.text.y = element_blank(), 
+#         axis.ticks = element_blank(), panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank()) +
+#   ggtitle(paste("Predicted Trajectory of Hurricane Allison")) 
+# 
+# allison_pred 
+# 
+# ggsave("allison_pred.jpg", allison_pred, path = "./figures")
+# 
 
-seasonrange <- paste(range(dt[, "Season"]), collapse=" - ")
+## Trajectory Plots (no int data vs real)
 
-map + ggtitle(paste("Atlantic named Windstorm Trajectories (", 
-                    seasonrange, ")\n")) 
+##### Allison
 
-## isidore is index 15
-## d1 is change in lat, d2 is change in long
+allison = data %>% 
+  filter(id == "ALLISON.1989")
 
-isidore_pred = test$beta.i[[1]] %>% as.data.frame()
-isidore_start = c(allison[1,7], allison[1,8]) %>% unlist()
-path = tibble(lat = rep(NA, nrow(isidore_pred) + 1), long = rep(NA, nrow(isidore_pred) + 1))
-path$lat[1] = isidore_start[1]
-path$long[1] = isidore_start[2]
-
-for(i in 1:nrow(isidore_pred)){
-  path$lat[i+1] = path$lat[i] + isidore_pred$delta1[i]
-  path$long[i+1] = path$long[i] + isidore_pred$delta2[i]
-  
+allison_beta = c()
+for (i in 1:length(test$beta.i)){
+  allison_beta = rbind(allison_beta, test$beta.i[[i]][1,])
 }
 
-map <- ggplot(data = path, aes(x = long, y = lat)) + 
-  geom_polygon(data = map_data("world"), 
-               aes(x = long, y = lat, group = group), 
-               fill = "gray25", colour = "gray10", size = 0.2) + 
-  geom_path(data = path, size = 0.5) + 
-  xlim(-138, -20) + ylim(3, 55) + 
-  labs(x = "", y = "", colour = "Wind \n(knots)") + 
+allison_beta = colMeans(allison_beta)
+
+og_allison = dat[[1]][,-1]
+
+windspeed_pred = og_allison %*% allison_beta
+
+
+allison = allison %>% 
+  slice(-1, -2) %>% 
+  mutate(pred_wind = windspeed_pred)
+
+allison_real <- ggplot(data = allison, aes(x = longitude, y = latitude)) +
+  geom_polygon(data = map_data("world"),
+               aes(x = long, y = lat, group = group),
+               fill = "gray25", colour = "gray10", size = 0.2) +
+  geom_path(data = allison, aes(colour = wind_kt), size = 0.5) +
+  xlim(-138, -20) + ylim(3, 55) +
+  labs(x = "", y = "", colour = "Wind \n(knots)") +
   theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
-        axis.text.x = element_blank(), axis.text.y = element_blank(), 
+        axis.text.x = element_blank(), axis.text.y = element_blank(),
         axis.ticks = element_blank(), panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-  
+        panel.grid.minor = element_blank()) +
+  ggtitle(paste("Real Windspeed of Hurricane Allison"))
+
+allison_real
+
+ggsave("allison_real.jpg", allison_real, path = "./figures")
+
+allison_pred <- ggplot(data = allison, aes(x = longitude, y = latitude)) +
+  geom_polygon(data = map_data("world"),
+               aes(x = long, y = lat, group = group),
+               fill = "gray25", colour = "gray10", size = 0.2) +
+  geom_path(data = allison, aes(colour = pred_wind), size = 0.5) +
+  xlim(-138, -20) + ylim(3, 55) +
+  labs(x = "", y = "", colour = "Wind \n(knots)") +
+  theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+        axis.text.x = element_blank(), axis.text.y = element_blank(),
+        axis.ticks = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  ggtitle(paste("Predicted Windspeed of Hurricane Allison"))
+
+allison_pred
+ggsave("allison_pred.jpg", allison_pred, path = "./figures")
+
+
+
+
+##### DEAN.1989
+
+dean = data %>% 
+  filter(id == "DEAN.1989")
+
+dean_beta = c()
+for (i in 1:length(test$beta.i)){
+  dean_beta = rbind(dean_beta, test$beta.i[[i]][3,])
+}
+
+dean_beta = colMeans(dean_beta)
+
+og_dean = dat[[3]][,-1]
+
+windspeed_pred = og_dean %*% dean_beta
+
+
+dean = dean %>% 
+  slice(-1, -2) %>% 
+  mutate(pred_wind = windspeed_pred)
+
+dean_real <- ggplot(data = dean, aes(x = longitude, y = latitude)) +
+  geom_polygon(data = map_data("world"),
+               aes(x = long, y = lat, group = group),
+               fill = "gray25", colour = "gray10", size = 0.2) +
+  geom_path(data = dean, aes(colour = wind_kt), size = 0.5) +
+  xlim(-138, -20) + ylim(3, 55) +
+  labs(x = "", y = "", colour = "Wind \n(knots)") +
+  theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+        axis.text.x = element_blank(), axis.text.y = element_blank(),
+        axis.ticks = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  ggtitle(paste("Real Windspeed of Hurricane Dean"))
+
+dean_real
+
+ggsave("dean_real.jpg", dean_real, path = "./figures")
+
+
+
+dean_pred <- ggplot(data = dean, aes(x = longitude, y = latitude)) +
+  geom_polygon(data = map_data("world"),
+               aes(x = long, y = lat, group = group),
+               fill = "gray25", colour = "gray10", size = 0.2) +
+  geom_path(data = dean, aes(colour = pred_wind), size = 0.5) +
+  xlim(-138, -20) + ylim(3, 55) +
+  labs(x = "", y = "", colour = "Wind \n(knots)") +
+  theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+        axis.text.x = element_blank(), axis.text.y = element_blank(),
+        axis.ticks = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  ggtitle(paste("Predicted Windspeed of Hurricane Dean"))
+
+dean_pred
+ggsave("dean_pred.jpg", dean_pred, path = "./figures")
+
+##### EMILY.1993
+
+emily = data %>% 
+  filter(id == "EMILY.1993")
+
+emily_beta = c()
+for (i in 1:length(test$beta.i)){
+  emily_beta = rbind(emily_beta, test$beta.i[[i]][44,])
+}
+
+emily_beta = colMeans(emily_beta)
+
+og_emily = dat[[44]][,-1]
+
+windspeed_pred = og_emily %*% emily_beta
+
+
+emily = emily %>% 
+  slice(-1, -2) %>% 
+  mutate(pred_wind = windspeed_pred)
+
+emily_real <- ggplot(data = emily, aes(x = longitude, y = latitude)) +
+  geom_polygon(data = map_data("world"),
+               aes(x = long, y = lat, group = group),
+               fill = "gray25", colour = "gray10", size = 0.2) +
+  geom_path(data = emily, aes(colour = wind_kt), size = 0.5) +
+  xlim(-138, -20) + ylim(3, 55) +
+  labs(x = "", y = "", colour = "Wind \n(knots)") +
+  theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+        axis.text.x = element_blank(), axis.text.y = element_blank(),
+        axis.ticks = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  ggtitle(paste("Real Windspeed of Hurricane Emily"))
+
+emily_real
+
+ggsave("emily_real.jpg", emily_real, path = "./figures")
+
+
+
+emily_pred <- ggplot(data = emily, aes(x = longitude, y = latitude)) +
+  geom_polygon(data = map_data("world"),
+               aes(x = long, y = lat, group = group),
+               fill = "gray25", colour = "gray10", size = 0.2) +
+  geom_path(data = emily, aes(colour = pred_wind), size = 0.5) +
+  xlim(-138, -20) + ylim(3, 55) +
+  labs(x = "", y = "", colour = "Wind \n(knots)") +
+  theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+        axis.text.x = element_blank(), axis.text.y = element_blank(),
+        axis.ticks = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  ggtitle(paste("Predicted Windspeed of Hurricane Emily"))
+
+emily_pred
+ggsave("emily_pred.jpg", emily_pred, path = "./figures")
+
+## Trajectory Plots (int)
+
+load("~/Desktop/cu_spring_21/p8160_hw/8160-Project-3/algorithm_results.Rdata")
+
+##### EMILY.1993
+
+emily = data %>% 
+  filter(id == "EMILY.1993")
+
+emily_beta = c()
+for (i in 1:length(test$beta.i)){
+  emily_beta = rbind(emily_beta, test$beta.i[[i]][44,])
+}
+
+emily_beta = colMeans(emily_beta)
+
+og_emily = dat[[44]] %>% 
+  as.data.frame() %>% 
+  mutate(y = 1) %>% 
+  as.matrix()
+
+windspeed_pred = og_emily %*% emily_beta
+
+emily = emily %>% 
+  slice(-1, -2) %>% 
+  mutate(pred_wind = windspeed_pred)
+
+emily_pred <- ggplot(data = emily, aes(x = longitude, y = latitude)) +
+  geom_polygon(data = map_data("world"),
+               aes(x = long, y = lat, group = group),
+               fill = "gray25", colour = "gray10", size = 0.2) +
+  geom_path(data = emily, aes(colour = pred_wind), size = 0.5) +
+  xlim(-138, -20) + ylim(3, 55) +
+  labs(x = "", y = "", colour = "Wind \n(knots)") +
+  theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+        axis.text.x = element_blank(), axis.text.y = element_blank(),
+        axis.ticks = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  ggtitle(paste("Predicted Windspeed of Hurricane Emily (Intercept Model)"))
+
+emily_pred
+ggsave("emily_pred_intmodel.jpg", emily_pred, path = "./figures")
+
+##### DEAN.1989
+
+dean = data %>% 
+  filter(id == "DEAN.1989")
+
+dean_beta = c()
+for (i in 1:length(test$beta.i)){
+  dean_beta = rbind(dean_beta, test$beta.i[[i]][3,])
+}
+
+dean_beta = colMeans(dean_beta)
+
+og_dean = dat[[3]] %>%
+  as.data.frame() %>% 
+  mutate(y = 1) %>% 
+  as.matrix()
+
+windspeed_pred = og_dean %*% dean_beta
+
+dean = dean %>% 
+  slice(-1, -2) %>% 
+  mutate(pred_wind = windspeed_pred)
+
+dean_pred <- ggplot(data = dean, aes(x = longitude, y = latitude)) +
+  geom_polygon(data = map_data("world"),
+               aes(x = long, y = lat, group = group),
+               fill = "gray25", colour = "gray10", size = 0.2) +
+  geom_path(data = dean, aes(colour = pred_wind), size = 0.5) +
+  xlim(-138, -20) + ylim(3, 55) +
+  labs(x = "", y = "", colour = "Wind \n(knots)") +
+  theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+        axis.text.x = element_blank(), axis.text.y = element_blank(),
+        axis.ticks = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  ggtitle(paste("Predicted Windspeed of Hurricane Dean (Intercept Model)"))
+
+dean_pred
+
+ggsave("dean_pred_intmodel.jpg", dean_pred, path = "./figures")
+
+##### Allison
+
+allison = data %>% 
+  filter(id == "ALLISON.1989")
+
+allison_beta = c()
+for (i in 1:length(test$beta.i)){
+  allison_beta = rbind(allison_beta, test$beta.i[[i]][1,])
+}
+
+allison_beta = colMeans(allison_beta)
+
+og_allison = dat[[1]] %>%
+  as.data.frame() %>% 
+  mutate(y = 1) %>% 
+  as.matrix()
+
+windspeed_pred = og_allison %*% allison_beta
+
+allison = allison %>% 
+  slice(-1, -2) %>% 
+  mutate(pred_wind = windspeed_pred)
+
+allison_pred <- ggplot(data = allison, aes(x = longitude, y = latitude)) +
+  geom_polygon(data = map_data("world"),
+               aes(x = long, y = lat, group = group),
+               fill = "gray25", colour = "gray10", size = 0.2) +
+  geom_path(data = allison, aes(colour = pred_wind), size = 0.5) +
+  xlim(-138, -20) + ylim(3, 55) +
+  labs(x = "", y = "", colour = "Wind \n(knots)") +
+  theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+        axis.text.x = element_blank(), axis.text.y = element_blank(),
+        axis.ticks = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  ggtitle(paste("Predicted Windspeed of Hurricane Allison (Intercept Model)"))
+
+allison_pred
+
+ggsave("allison_pred_intmodel.jpg", allison_pred, path = "./figures")
