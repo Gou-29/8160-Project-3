@@ -165,147 +165,51 @@ mcmc = function(dat, ini.beta, ini.bsig, ini.sig, niter = 1000){
 # Test the chain
 ### first set of initial value
 test <- mcmc(dat, 
-             ini.beta = rep(.05,8), 
+             ini.beta = c(50,rep(0,7)), 
              ini.sig = .5, 
              ini.bsig = diag(.5,8,8), niter = 1000)
 
-betasummary <- tibble(
-  intercept = 0,
-  x1 = 0,
-  x2 = 0,
-  x3 = 0,
-  x4 = 0,
-  delta1 = 0,
-  delta2 = 0,
-  delta3 = 0) 
-
-for (i in 1:length(test$beta)){
-  betasummary <- bind_rows(betasummary,
-                           t(test$beta[[i]]) %>% as.data.frame())
-}
+summaryplotsfun <- function(input_chain){
+  betasummary <- tibble(
+    intercept = 0,
+    x1 = 0,
+    x2 = 0,
+    x3 = 0,
+    x4 = 0,
+    delta1 = 0,
+    delta2 = 0,
+    delta3 = 0) %>% slice(-1)
   
-betasummary  <- 
-  betasummary %>% 
-  slice(-1, -2) %>%
-  dplyr::select(1:8) %>% 
-  mutate(index = 1:(nrow(betasummary)-2)) %>% 
-  pivot_longer(1:8,
-               names_to = "var",
-               values_to = "val")
-
-betasummary %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
-  geom_line() +
-  facet_wrap(~var, nrow = 2, scales = "free")
-
-#Convergence plot overlapped
-betasummary %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
-  geom_line() 
-
-#Convergence plot by variable
-betasummary %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
-  geom_line() +
-  facet_grid(rows = vars(var))
-
-#Convergence plot by variable
-betasummary %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
-  geom_line() +
-  facet_grid(~var, scales = "free")
-
-
-
-### second set of initial value
-test2 <- mcmc(dat, 
-             ini.beta = rep(10,8), 
-             ini.sig = 10, 
-             ini.bsig = diag(10,8,8), niter = 1000)
-
-betasummary2 <- tibble(
-  intercept = 0,
-  x1 = 0,
-  x2 = 0,
-  x3 = 0,
-  x4 = 0,
-  delta1 = 0,
-  delta2 = 0,
-  delta3 = 0) 
-
-for (i in 1:length(test2$beta)){
-  betasummary2 <- bind_rows(betasummary2,
-                           t(test2$beta[[i]]) %>% as.data.frame())
+  for (i in 1:length(input_chain$beta)){
+    sub <- t(input_chain$beta[[i]]) %>% as.data.frame()
+    names(sub) <- names(betasummary)
+    betasummary <- bind_rows(betasummary,sub)
+  }
+  
+  betasummary  <- 
+    betasummary %>% 
+    dplyr::select(1:8) %>% 
+    mutate(index = 1:(nrow(betasummary))) %>% 
+    pivot_longer(1:8,
+                 names_to = "var",
+                 values_to = "val")
+  
+  p1 <- betasummary %>% 
+    ggplot(aes(x = val, group = var, color = var)) + 
+    geom_histogram() +
+    facet_wrap(~var, nrow = 2, scales = "free")
+  
+  p2 <- betasummary %>% 
+    ggplot(aes(x = index, y = val, group = var, color = var)) + 
+    geom_line() +
+    facet_wrap(~var, nrow = 2, scales = "free")
+  
+  return(list(p1=p1,p2=p2))
 }
 
-betasummary2  <- 
-  betasummary2 %>% 
-  slice(-1, -2) %>%
-  dplyr::select(1:8) %>% 
-  mutate(index = 1:(nrow(betasummary2)-2)) %>% 
-  pivot_longer(1:8,
-               names_to = "var",
-               values_to = "val")
-
-
-#Convergence plot overlapped
-betasummary2 %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
-  geom_line() 
-
-#Convergence plot by variable
-betasummary2 %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
-  geom_line() +
-  facet_grid(rows = vars(var))
-
-#Convergence plot by variable
-betasummary2 %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
-  geom_line() +
-  facet_grid(~var, scales = "free")
-
-
-
-
-### third set of initial value
-test3 <- mcmc(dat, 
-             ini.beta = rep(10,80), 
-             ini.sig = 10, 
-             ini.bsig = diag(10,80,80), niter = 1000)
-
-betasummary3 <- tibble(
-  intercept = 0,
-  x1 = 0,
-  x2 = 0,
-  x3 = 0,
-  x4 = 0,
-  delta1 = 0,
-  delta2 = 0,
-  delta3 = 0) 
-
-for (i in 1:length(test3$beta)){
-  betasummary3 <- bind_rows(betasummary3,
-                            t(test3$beta[[i]]) %>% as.data.frame())
-}
-
-betasummary3  <- 
-  betasummary3 %>% 
-  slice(-1, -2) %>%
-  dplyr::select(1:8) %>% 
-  mutate(index = 1:(nrow(betasummary3)-2)) %>% 
-  pivot_longer(1:8,
-               names_to = "var",
-               values_to = "val")
-
-
-#Convergence plot overlapped
-betasummary3 %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
-  geom_line() 
-
-#Convergence plot by variable
-betasummary3 %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
-  geom_line() +
-  facet_grid(rows = vars(var))
-
-#Convergence plot by variable
-betasummary3 %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
-  geom_line() +
-  facet_grid(~var, scales = "free")
-
+summary1 <- summaryplotsfun(test)
+summary1[[1]]
+summary1[[2]]
 
 #warm start
 warm_df = read.csv("./hurrican356.csv") %>% 
@@ -354,30 +258,140 @@ test2 <- mcmc(dat,
              ini.sig = 1, 
              ini.bsig = diag(1,8,8), niter = 1000)
 
-betasummary <- tibble(
-  intercept = 0,
-  x1 = 0,
-  x2 = 0,
-  x3 = 0,
-  x4 = 0,
-  delta1 = 0,
-  delta2 = 0,
-  delta3 = 0) 
+summary2 <- summaryplotsfun(test2)
+summary2[[1]]
+summary2[[2]]
 
-for (i in 1:length(test2$beta)){
-  betasummary <- bind_rows(betasummary,
-                           t(test2$beta[[i]]) %>% as.data.frame())
+
+###### NEW ########
+# Try subsetting the data:
+datup <- data %>% slice(1) %>% slice(-1)
+datdown <- data %>% slice(1) %>% slice(-1)
+
+# Split into up and down:
+
+for(i in 1:length(ids)){
+  subdf = 
+    data %>% 
+    filter(id == ids[i])
+  
+  # identify max windspeed:
+  index <- which.max(subdf$wind_kt)
+  
+  datup <- bind_rows(datup, subdf[1:index,])
+  datdown <- bind_rows(datdown, subdf[index:nrow(subdf),])
 }
 
-betasummary  <- 
-  betasummary %>% 
-  slice(-1, -2) %>%
-  dplyr::select(1:8) %>% 
-  mutate(index = 1:(nrow(betasummary)-2)) %>% 
-  pivot_longer(1:8,
-               names_to = "var",
-               values_to = "val")
 
-betasummary %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
-  geom_line() +
-  facet_wrap(~var, nrow = 2, scales = "free")
+dat <- list(NULL)
+
+dfindex = 1
+sumti = 0  # this value is for update sigma:= = as we sub-seted we need to run again.
+
+i = 1
+while (i <= length(ids)){
+  subdata <-
+    datup %>%    # !modify for up!
+    filter(id == ids[i])
+  rowcount <- nrow(subdata)
+  # filter observations -> at least 5 observation so at
+  # least 3 observations in the reminder. 
+  if(rowcount < 5) {
+    i = i + 1
+  }else{
+    # Count total number of hurricane and observation:
+    sumti = sumti + rowcount  
+    sub.wind = subdata$wind_kt
+    sub.lat  = subdata$latitude
+    sub.lon  = subdata$longitude
+    
+    dt1 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
+    dt2 = sub.lat[1:(rowcount-2)] - sub.lat[2:(rowcount - 1)]
+    dt3 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
+    
+    # Update the dat:
+    redat = tibble(
+      y = sub.wind[3:rowcount],
+      intercept = 1,
+      x1 = subdata$month[3:rowcount],
+      x2 = subdata$year[3:rowcount],
+      x3 = subdata$nature[3:rowcount],
+      x4 = sub.wind[2:(rowcount - 1)],
+      delta1 = dt1,
+      delta2 = dt2,
+      delta3 = dt3
+    ) %>% as.matrix()
+    
+    dat[[dfindex]] = redat
+    
+    i = i + 1
+    dfindex = dfindex + 1
+  }
+}
+
+upchain <- mcmc(dat, 
+              ini.beta = rep(5,8), 
+              ini.sig = 1, 
+              ini.bsig = diag(1,8,8), niter = 3000)
+
+summaryup <- summaryplotsfun(upchain)
+summaryup[[1]]
+summaryup[[2]]
+
+#### downchain
+
+dat <- list(NULL)
+dfindex = 1
+sumti = 0  # this value is for update sigma:= = as we sub-seted we need to run again.
+
+i = 1
+while (i <= length(ids)){
+  subdata <-
+    datdown %>%    # !modify for dwon!
+    filter(id == ids[i])
+  rowcount <- nrow(subdata)
+  # filter observations -> at least 5 observation so at
+  # least 3 observations in the reminder. 
+  if(rowcount < 5) {
+    i = i + 1
+  }else{
+    # Count total number of hurricane and observation:
+    sumti = sumti + rowcount  
+    sub.wind = subdata$wind_kt
+    sub.lat  = subdata$latitude
+    sub.lon  = subdata$longitude
+    
+    dt1 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
+    dt2 = sub.lat[1:(rowcount-2)] - sub.lat[2:(rowcount - 1)]
+    dt3 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
+    
+    # Update the dat:
+    redat = tibble(
+      y = sub.wind[3:rowcount],
+      intercept = 1,
+      x1 = subdata$month[3:rowcount],
+      x2 = subdata$year[3:rowcount],
+      x3 = subdata$nature[3:rowcount],
+      x4 = sub.wind[2:(rowcount - 1)],
+      delta1 = dt1,
+      delta2 = dt2,
+      delta3 = dt3
+    ) %>% as.matrix()
+    
+    dat[[dfindex]] = redat
+    
+    i = i + 1
+    dfindex = dfindex + 1
+  }
+}
+
+downchain <- mcmc(dat, 
+                ini.beta = rep(5,8), 
+                ini.sig = 1, 
+                ini.bsig = diag(1,8,8), niter = 5000)
+
+summarydown <- summaryplotsfun(downchain)
+summarydown[[1]]
+summarydown[[2]]
+
+
