@@ -642,6 +642,9 @@ In this project, we constructed a hierarchical Bayesian model to predict the win
 
 By plotting the predicted wind speed values on the same trajectories as the real data, we can see that for both the non-intercept and intercept model, both were able to achieve very close results to the real observed values. 
 
-To improve the model...
+We ran 5000 iterations to obtain the model, however, we might need to construct the full model with more iterations. We set the number to be 5000 because we want to check the performance of the chain efficiently and see if all the variables converge. Also, more combinations of initial values should be tested to achieve optimal performance. Further research should be done on why the intercept is not converging.
+
+To improve the model, we suggest trying MH algorithm in the future to update the parameters. One should also consider
+calculating the accept rate periodically during the iterations process to make sure the modeling process is on the right track. In addition, in this study, we excluded records with times that's not in 00:00:00, 06:00:00, 12:00:00, 18:00:00. Further work should be done on this matter to minimize the data wasting and to study how to better accommodate different time intervals.
 
 
