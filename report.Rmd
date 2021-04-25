@@ -15,7 +15,8 @@ data = read.csv("hurrican356.csv")
 ```
 
 # Introduction
-    Hierarchical Bayesian Model is the combination of two methods: Linear Regression Model in Hierarchical Form and Bayesian Inference methods.
+    
+  Hierarchical Bayesian Model is the combination of two methods: Linear Regression Model in Hierarchical Form and Bayesian Inference methods.
   
   Hierarchical form model is the linear regression model containing both Within-group analysis and Between-group analysis. Observations for each subject, from hierarchical form model, are usually collected with natural heterogeneity across the whole population over research time periods. This natural heterogeneity can be regarded as subject-specific mean response trajectories (i,e,. random effects) for each individual group. Nested data for each individual group violates the independent assumption for the linear regression model. Holding these individual-specific effects, the overall mean response over time across the whole research population is still considered as linearly over time, which is called Population-level effects (i.e,. fixed effects).
   $$\underbrace{\pi(\theta| X)}_{posterior\ distribution} \propto \underbrace{\pi(X|\theta)}_{likelihood} \times \underbrace{\pi(\theta)}_{prior\ distribution} $$
@@ -126,7 +127,7 @@ For the exponential term, if we set:
 
 Then, use the same technique when generating $\boldsymbol{\beta_i}$
 $$R + \boldsymbol{\beta}\boldsymbol{V}
-\boldsymbol{\beta} - 2\boldsymbol{M}\boldsymbol{\beta} \propto (\boldsymbol{\beta} - \boldsymbol{V}^{-1}\boldsymbol{M})^{T}\boldsymbol{V}^{-1}(\boldsymbol{\beta} - \boldsymbol{V}^{-1}\boldsymbol{M})$$
+\boldsymbol{\beta} - 2\boldsymbol{M}\boldsymbol{\beta} \propto (\boldsymbol{\beta} - \boldsymbol{V}^{-1}\boldsymbol{M})^{T}\boldsymbol{V}(\boldsymbol{\beta} - \boldsymbol{V}^{-1}\boldsymbol{M})$$
 
 (NOTE: This is the same as using OLS to estimate $\boldsymbol{\beta}$ using all $\boldsymbol{\beta_i}$)
 
