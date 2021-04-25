@@ -327,14 +327,16 @@ warm_df = read.csv("./hurrican356.csv") %>%
   dplyr::mutate(
     delta1 = c(NA, diff(latitude)),
     delta2 = c(NA, diff(longitude)),
-    delta3 = c(NA, diff(wind_kt))
+    delta3 = c(NA, diff(wind_kt)),
+    x4 = lag(wind_kt)
   ) %>% 
   ungroup() %>% 
   na.omit() %>% 
-  dplyr::select(id, month, year, nature, delta1, delta2, delta3, latitude, longitude, wind_kt)
+  dplyr::select(id, month, year, nature, x4, delta1, delta2, delta3, latitude, longitude, wind_kt)
 
 library(caret)
-x <- model.matrix(wind_kt ~ month + year + as.factor(nature) + delta1 + delta2 + delta3, data = warm_df)
+
+x <- model.matrix(wind_kt ~ month + year + as.factor(nature) + x4 + delta1 + delta2 + delta3, data = warm_df)
 y = warm_df$wind_kt
 
 ctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 5)
@@ -344,13 +346,13 @@ fit.lm <- train(x, y,
                 trControl = ctrl)
 
 warm_beta = c(coef(fit.lm$finalModel)[1], coef(fit.lm$finalModel)[3], coef(fit.lm$finalModel)[4],
-              mean(coef(fit.lm$finalModel)[5:8]), 1, coef(fit.lm$finalModel)[9], coef(fit.lm$finalModel)[10],
-              coef(fit.lm$finalModel)[11])
+              mean(coef(fit.lm$finalModel)[5:8]),coef(fit.lm$finalModel)[9], coef(fit.lm$finalModel)[10],
+              coef(fit.lm$finalModel)[11],coef(fit.lm$finalModel)[12])
 
 test2 <- mcmc(dat, 
              ini.beta = warm_beta, 
-             ini.sig = .5, 
-             ini.bsig = diag(.5,8,8), niter = 1000)
+             ini.sig = 1, 
+             ini.bsig = diag(1,8,8), niter = 1000)
 
 betasummary <- tibble(
   intercept = 0,
