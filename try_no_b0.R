@@ -213,3 +213,4 @@ summary1 <- summaryplotsfun(test)
 summary1[[1]]
 summary1[[2]]
 
+save(test, file = "no_b0_results.rda")
