@@ -50,9 +50,9 @@ while (i <= length(ids)){
     sub.lat  = subdata$latitude
     sub.lon  = subdata$longitude
     
-    dt1 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
+    dt3 = sub.wind[1:(rowcount-2)] - sub.wind[2:(rowcount - 1)]
     dt2 = sub.lat[1:(rowcount-2)] - sub.lat[2:(rowcount - 1)]
-    dt3 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
+    dt1 = sub.lon[1:(rowcount-2)] - sub.lon[2:(rowcount - 1)]
 
     # Update the dat:
     redat = tibble(
