@@ -560,7 +560,7 @@ summarydown[[2]]
 
 The “upchain” (wind speed increasing monotonically) converged in about 2000-3000 steps but the "downchain" did not seems to converge. This may due to a bad prior.
 
-# Results
+
 
 After choosing a good seed, where we see that the intercept converges to a single normal distribution after 5000 iterations, we get the following data.
 

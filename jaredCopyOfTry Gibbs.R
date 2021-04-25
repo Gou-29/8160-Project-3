@@ -271,6 +271,8 @@ test <- mcmc(dat,
              ini.sig = .5, 
              ini.bsig = diag(.5,8,8), niter = 5000)
 
+save(test, file = "algorithm_results.Rdata")
+
 summary1 <- summaryplotsfun(test)
 summary1[[1]]
 summary1[[2]]
@@ -338,3 +340,50 @@ ci_beta <- tibble(
 colnames(ci_beta) = c("2.5%","Beta_hat", "97.5%")
 
 ci_beta %>% knitr::kable()
+
+## Trajectory Plots
+allison = dt %>% filter(ID == "ALLISON.1989")
+map <- ggplot(data = allison, aes(x = Longitude, y = Latitude)) + 
+  geom_polygon(data = map_data("world"), 
+               aes(x = long, y = lat, group = group), 
+               fill = "gray25", colour = "gray10", size = 0.2) + 
+  geom_path(data = allison, aes(colour = Wind.kt), size = 0.5) + 
+  xlim(-138, -20) + ylim(3, 55) + 
+  labs(x = "", y = "", colour = "Wind \n(knots)") + 
+  theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+        axis.text.x = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+seasonrange <- paste(range(dt[, "Season"]), collapse=" - ")
+
+map + ggtitle(paste("Atlantic named Windstorm Trajectories (", 
+                    seasonrange, ")\n")) 
+
+## isidore is index 15
+## d1 is change in lat, d2 is change in long
+
+isidore_pred = test$beta.i[[1]] %>% as.data.frame()
+isidore_start = c(allison[1,7], allison[1,8]) %>% unlist()
+path = tibble(lat = rep(NA, nrow(isidore_pred) + 1), long = rep(NA, nrow(isidore_pred) + 1))
+path$lat[1] = isidore_start[1]
+path$long[1] = isidore_start[2]
+
+for(i in 1:nrow(isidore_pred)){
+  path$lat[i+1] = path$lat[i] + isidore_pred$delta1[i]
+  path$long[i+1] = path$long[i] + isidore_pred$delta2[i]
+  
+}
+
+map <- ggplot(data = path, aes(x = long, y = lat)) + 
+  geom_polygon(data = map_data("world"), 
+               aes(x = long, y = lat, group = group), 
+               fill = "gray25", colour = "gray10", size = 0.2) + 
+  geom_path(data = path, size = 0.5) + 
+  xlim(-138, -20) + ylim(3, 55) + 
+  labs(x = "", y = "", colour = "Wind \n(knots)") + 
+  theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+        axis.text.x = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+  
