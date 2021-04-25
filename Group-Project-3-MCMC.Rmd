@@ -267,30 +267,6 @@ df = read.csv("./hurrican356.csv") %>%
    select(id, month, year, nature, delta1, delta2, delta3, latitude, longitude, wind_kt)
 ```
 
-```{r}
-test_df = df %>% filter(id == "ALLISON.1989")
-```
-
-```{r}
-gibbs_fxn = function(y, niter = 20, betaistart = rep(1, 8), betastart = 1, sigstart = 0, sig2start = 0) {
-  n = dim(y)[1]
-  betai_m = matrix(NA, niter, 8)
-  beta_m = rep(NA, niter)
-  sig_m = rep(NA, niter)
-  sig2_m = rep(NA, niter)
-  
-  betai_m[1,] = betaistart
-  beta_m[1] = betastart
-  sig_m[1] = sigstart
-  sig2_m[1] = sig2start
-  
-  for(i in 2:niter){
-    beta_m[i] = rnorm(1, mean = 1/n * sum(betai_m[i-1,]), sd = 1/n * sig_m[i-1])
-    sig_m = rwishart(n,diag(sum((betai_m[i-1] - beta_m[i-1])*t(betai_m[i-1,] - beta_m[i-1]))))$IW
-  }
-}
-```
-
 ```{r, message=FALSE, warning=FALSE}
 
 library(MASS)

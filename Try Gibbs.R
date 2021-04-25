@@ -164,9 +164,9 @@ mcmc = function(dat, ini.beta, ini.bsig, ini.sig, niter = 1000){
 
 # Test the chain
 test <- mcmc(dat, 
-             ini.beta = rep(1,8), 
-             ini.sig = 1, 
-             ini.bsig = diag(1,8,8), niter = 1000)
+             ini.beta = rep(.05,8), 
+             ini.sig = .5, 
+             ini.bsig = diag(.5,8,8), niter = 1000)
 
 betasummary <- tibble(
   intercept = 0,
@@ -191,7 +191,80 @@ betasummary  <-
   pivot_longer(1:8,
                names_to = "var",
                values_to = "val")
+
 betasummary %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
   geom_line() +
-  facet_grid(~var, nrow = 2, scales = "free")
+  facet_wrap(~var, nrow = 2, scales = "free")
 
+#warm start
+warm_df = read.csv("./hurrican356.csv") %>% 
+  janitor::clean_names() %>% 
+  rename(year = season) %>% 
+  separate(time, into = c("date", "hour"), sep = " ") %>% 
+  dplyr::mutate(
+    date = str_remove(date, "\\("),
+    hour = str_remove(hour, "\\)")
+  ) %>% 
+  dplyr::mutate(month = str_match(date, "-\\s*(.*?)\\s*-")) %>% 
+  dplyr::mutate(month = gsub("[-]", "", month)) %>% 
+  dplyr::mutate(
+    hour = str_replace(hour, ":00:00", ""),
+    month = month[,1],
+    month = as.numeric(month)
+  ) %>% 
+  group_by(id) %>% 
+  dplyr::mutate(
+    delta1 = c(NA, diff(latitude)),
+    delta2 = c(NA, diff(longitude)),
+    delta3 = c(NA, diff(wind_kt))
+  ) %>% 
+  ungroup() %>% 
+  na.omit() %>% 
+  dplyr::select(id, month, year, nature, delta1, delta2, delta3, latitude, longitude, wind_kt)
+
+library(caret)
+x <- model.matrix(wind_kt ~ month + year + as.factor(nature) + delta1 + delta2 + delta3, data = warm_df)
+y = warm_df$wind_kt
+
+ctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 5)
+
+fit.lm <- train(x, y, 
+                method = "lm",
+                trControl = ctrl)
+
+warm_beta = c(coef(fit.lm$finalModel)[1], coef(fit.lm$finalModel)[3], coef(fit.lm$finalModel)[4],
+              mean(coef(fit.lm$finalModel)[5:8]), 1, coef(fit.lm$finalModel)[9], coef(fit.lm$finalModel)[10],
+              coef(fit.lm$finalModel)[11])
+
+test2 <- mcmc(dat, 
+             ini.beta = warm_beta, 
+             ini.sig = .5, 
+             ini.bsig = diag(.5,8,8), niter = 1000)
+
+betasummary <- tibble(
+  intercept = 0,
+  x1 = 0,
+  x2 = 0,
+  x3 = 0,
+  x4 = 0,
+  delta1 = 0,
+  delta2 = 0,
+  delta3 = 0) 
+
+for (i in 1:length(test2$beta)){
+  betasummary <- bind_rows(betasummary,
+                           t(test2$beta[[i]]) %>% as.data.frame())
+}
+
+betasummary  <- 
+  betasummary %>% 
+  slice(-1, -2) %>%
+  dplyr::select(1:8) %>% 
+  mutate(index = 1:(nrow(betasummary)-2)) %>% 
+  pivot_longer(1:8,
+               names_to = "var",
+               values_to = "val")
+
+betasummary %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
+  geom_line() +
+  facet_wrap(~var, nrow = 2, scales = "free")
