@@ -386,3 +386,6 @@ mcmc = function(dat, ini.beta, ini.bsig, ini.sig, niter = 1000){
     beta[i] = beta.fun(betai = beta.i[[i]]$beta.i, bigsig = b.sig[i])
     beta.i[i + 1] = betai(dat, beta = beta[i], sigma = sigma[i], big.sig = b.sig[i])$beta.i}
   return(list(beta.i = beta.i, sigma - sigma, b.sig = b.sig, beta = beta))}
+```
+
+
