@@ -163,6 +163,7 @@ mcmc = function(dat, ini.beta, ini.bsig, ini.sig, niter = 1000){
 
 
 # Test the chain
+### first set of initial value
 test <- mcmc(dat, 
              ini.beta = rep(1,8), 
              ini.sig = 1, 
@@ -191,7 +192,114 @@ betasummary  <-
   pivot_longer(1:8,
                names_to = "var",
                values_to = "val")
+
+
+#Convergence plot overlapped
+betasummary %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
+  geom_line() 
+
+#Convergence plot by variable
 betasummary %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
   geom_line() +
-  facet_grid(~var, nrow = 2, scales = "free")
+  facet_grid(rows = vars(var))
+
+#Convergence plot by variable
+betasummary %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
+  geom_line() +
+  facet_grid(~var, scales = "free")
+
+
+
+### second set of initial value
+test2 <- mcmc(dat, 
+             ini.beta = rep(10,8), 
+             ini.sig = 10, 
+             ini.bsig = diag(10,8,8), niter = 1000)
+
+betasummary2 <- tibble(
+  intercept = 0,
+  x1 = 0,
+  x2 = 0,
+  x3 = 0,
+  x4 = 0,
+  delta1 = 0,
+  delta2 = 0,
+  delta3 = 0) 
+
+for (i in 1:length(test2$beta)){
+  betasummary2 <- bind_rows(betasummary2,
+                           t(test2$beta[[i]]) %>% as.data.frame())
+}
+
+betasummary2  <- 
+  betasummary2 %>% 
+  slice(-1, -2) %>%
+  dplyr::select(1:8) %>% 
+  mutate(index = 1:(nrow(betasummary2)-2)) %>% 
+  pivot_longer(1:8,
+               names_to = "var",
+               values_to = "val")
+
+
+#Convergence plot overlapped
+betasummary2 %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
+  geom_line() 
+
+#Convergence plot by variable
+betasummary2 %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
+  geom_line() +
+  facet_grid(rows = vars(var))
+
+#Convergence plot by variable
+betasummary2 %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
+  geom_line() +
+  facet_grid(~var, scales = "free")
+
+
+
+
+### third set of initial value
+test3 <- mcmc(dat, 
+             ini.beta = rep(10,80), 
+             ini.sig = 10, 
+             ini.bsig = diag(10,80,80), niter = 1000)
+
+betasummary3 <- tibble(
+  intercept = 0,
+  x1 = 0,
+  x2 = 0,
+  x3 = 0,
+  x4 = 0,
+  delta1 = 0,
+  delta2 = 0,
+  delta3 = 0) 
+
+for (i in 1:length(test3$beta)){
+  betasummary3 <- bind_rows(betasummary3,
+                            t(test3$beta[[i]]) %>% as.data.frame())
+}
+
+betasummary3  <- 
+  betasummary3 %>% 
+  slice(-1, -2) %>%
+  dplyr::select(1:8) %>% 
+  mutate(index = 1:(nrow(betasummary3)-2)) %>% 
+  pivot_longer(1:8,
+               names_to = "var",
+               values_to = "val")
+
+
+#Convergence plot overlapped
+betasummary3 %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
+  geom_line() 
+
+#Convergence plot by variable
+betasummary3 %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
+  geom_line() +
+  facet_grid(rows = vars(var))
+
+#Convergence plot by variable
+betasummary3 %>% ggplot(aes(x = index, y = val, group = var, color = var)) + 
+  geom_line() +
+  facet_grid(~var, scales = "free")
 
