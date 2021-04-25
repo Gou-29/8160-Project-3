@@ -356,7 +356,7 @@ summary1[[2]]
 ```
 
 
-After testing the chain with the first set of initial values, from the density plots, we noticed that for all variables except the intercept, they follow a normal distribution. From the line chart, we see that all variables converged except for the intercept. Therefore, we decided to do a warm start to see whether the problem is solved.
+After testing the chain with the first set of initial values, from the density plots, we noticed that for all variables except the intercept, follow a normal distribution. From the line chart, we see that all variables converged except for the intercept. Therefore, we decided to do a warm start to see whether the problem is solved.
 
 
 ## Test the chain with a warm start
@@ -414,7 +414,7 @@ summary2[[2]]
 ```
 
 
-By doing warm start, for the intercept, it's density plot appeared to be a mixture of 2 normal distributions, suggesting that we need to subset the data. The line chart still shows no convergence. The nature of the wind speed is: go up first and go down. So we separate it into up intervals and down intervals as one of our predictor, delta3.
+By doing warm start, for the intercept, it's density plot appeared to be a mixture of 2 normal distributions, suggesting that we need to subset the data. The line chart still shows no convergence. The nature of the wind speed is going up first and then going down, so we separate the data into up intervals and down intervals as one of our predictor, delta3.
 
 
 ## Test the chain with subsetted data
@@ -558,7 +558,7 @@ summarydown[[2]]
 ```
 
 
-The “upchain” (wind speed increasing monotonically) actually converged in about 2k-3k steps but the "downchain" did not seems to converge. This may due to a bad prior.
+The “upchain” (wind speed increasing monotonically) converged in about 2000-3000 steps but the "downchain" did not seems to converge. This may due to a bad prior.
 
 
 =======
