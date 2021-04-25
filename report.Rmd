@@ -299,7 +299,8 @@ $$\boldsymbol{\beta} \sim N \bigg(Vec(\hat{\beta_i}), \boldsymbol{\Sigma}\ \beta
 
 
 
-# Results and dicussion
+# Results
+
 ## Test the chain with the first set of initial value
 ```{r, include=FALSE, message=FALSE, warning=FALSE}
 # Test the chain
@@ -559,8 +560,6 @@ summarydown[[2]]
 
 The “upchain” (wind speed increasing monotonically) converged in about 2000-3000 steps but the "downchain" did not seems to converge. This may due to a bad prior.
 
-
-
 After choosing a good seed, where we see that the intercept converges to a single normal distribution after 5000 iterations, we get the following data.
 
 ![Histogram of Betas](./figures/hist_beta.jpg)
@@ -631,5 +630,15 @@ We compared our models response for predicted wind speed in both the intercept a
 ![Emily Pred No Intercept](./figures/emily_pred.jpg)
 ![Emily Pred W/ Intercept](./figures/emily_pred_intmodel.jpg)
 From these plots we can see that the predicted wind speeds from both models are very close to what we see in the real data. The model with the intercept term tended to slightly underestimate the real wind speeds, while the model without the intercept was very on par with the real data.
+
+As far as how the model tracks individual hurricanes, our bayesian model sought to predict the wind speed at $t+6$, and it achieves this goal very well.
+
+# Discussion and Conclusions
+
+In this project, we constructed a hierarchical Bayesian model to predict the wind speeds of hurricanes. Because we were able to derive the conditional distributions we achieved this model by implementing a gibbs sampling algorithm for 5000 iterations. Originally we implemented this algorithm with 7 predictors and the intercept. All predictors had converged within these 5000 iterations, however the intercept value did not. We then implemented the same algorithm without the intercept and we had all predictors converge again within the 5000 iterations. We compared the results of the models with and without the intercepts. The results showed that our models gave us a set of adequate predicted values. 
+
+By plotting the predicted wind speed values on the same trajectories as the real data, we can see that for both the non-intercept and intercept model, both were able to achieve very close results to the real observed values. 
+
+To improve the model...
 
 
