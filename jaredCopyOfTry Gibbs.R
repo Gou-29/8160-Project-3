@@ -275,6 +275,9 @@ summary1 <- summaryplotsfun(test)
 summary1[[1]]
 summary1[[2]]
 
+ggsave("hist_beta.jpg", summary1[[1]], path = "./figures")
+ggsave("trace_beta.jpg", summary1[[2]], path = "./figures")
+
 #CI
 library(bayestestR)
 
@@ -332,3 +335,4 @@ ci_beta <- tibble(
 
 colnames(ci_beta) = c("2.5%","Beta_hat", "97.5%")
 
+ci_beta %>% knitr::kable()
