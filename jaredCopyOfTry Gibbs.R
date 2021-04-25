@@ -297,6 +297,8 @@ for (i in 1:length(test$beta)){
   betasummary <- bind_rows(betasummary,sub)
 }
 
+save(betasummary, file = "good_int_data.Rdata")
+
 ci_int <- ci(betasummary$intercept, method = "ETI", ci = 0.95)
 hat_int <- mean(betasummary$intercept)
 
