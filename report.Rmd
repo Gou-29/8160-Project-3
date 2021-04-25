@@ -297,7 +297,6 @@ That indicate:
 
 $$\boldsymbol{\beta} \sim N \bigg(Vec(\hat{\beta_i}), \boldsymbol{\Sigma}\ \beta_i^T\beta_i\bigg)$$
 
-<<<<<<< HEAD
 
 
 # Results and dicussion
