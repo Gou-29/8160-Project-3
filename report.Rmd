@@ -560,6 +560,7 @@ summarydown[[2]]
 
 The “upchain” (wind speed increasing monotonically) converged in about 2000-3000 steps but the "downchain" did not seems to converge. This may due to a bad prior.
 
+## Plots for Gibbs sampling with Intercept
 After choosing a good seed, where we see that the intercept converges to a single normal distribution after 5000 iterations, we get the following data.
 
 ![Histogram of Betas](./figures/hist_beta.jpg)
@@ -567,7 +568,7 @@ After choosing a good seed, where we see that the intercept converges to a singl
 ![Trace of Betas](./figures/trace_beta.jpg)
 
 We get the following 95% Credibility Intervals for the estimated betas:
-```{r include=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 load("./good_int_data.Rdata")
 
 library(bayestestR)
@@ -611,6 +612,8 @@ ci_beta <- tibble(
 colnames(ci_beta) = c("2.5%","Beta_hat", "97.5%")
 
 ci_beta %>% knitr::kable(caption = "95% Credibility Interval of Betas")
+
+
 ```
 
 From table 1 we can see that month of year when the hurricane started, year of the hurricane, and  change in latitude do not have significant impacts on the estimated response as their CI's include 0 (x1, x2, and d2 respectively). Therefore we do not have evidence to support the statement that "hurricane wind speed has been increasing over years."

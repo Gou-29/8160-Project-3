@@ -213,4 +213,7 @@ summary1 <- summaryplotsfun(test)
 summary1[[1]]
 summary1[[2]]
 
+ggsave("nob0_hist.jpg", summary1[[1]], path = "./figures")
+ggsave("nob0_trace.jpg", summary1[[2]], path = "./figures")
+
 save(test, file = "no_b0_results.rda")
