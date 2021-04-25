@@ -118,7 +118,7 @@ bsig = function(betaimat, beta){
   
   summatrix <- diag(0,8,8)
   for(i in 1:nrow(betaimat)){
-    beta.i <- betaimat[1,]
+    beta.i <- betaimat[i,]
     summatrix <- summatrix + (beta.i - beta) %*% t(beta.i - beta)
   }
   
@@ -265,7 +265,7 @@ summary2[[2]]
 
 
 #Results
-set.seed(9999)
+set.seed(3377)
 test <- mcmc(dat, 
              ini.beta = c(50,rep(0,7)), 
              ini.sig = .5, 
@@ -330,5 +330,5 @@ ci_beta <- tibble(
   d3 = c(ci_d3$CI_low, hat_d3, ci_d3$CI_high)
 ) %>% t()
 
-colnames(ci_beta) = c("2.5%", "97.5%")
+colnames(ci_beta) = c("2.5%","Beta_hat", "97.5%")
 
