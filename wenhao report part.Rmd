@@ -2,7 +2,7 @@
 title: "wenhao part for report"
 author: "Wenhao Gou | wg2364"
 date: "4/25/2021"
-output: html_document
+output: pdf_document
 ---
 
 ```{r}
@@ -45,12 +45,55 @@ We can see that, SSR is normally distributed and converged. This suggested that 
 Under the weak prior, by equation (), the posteria distribution will be a multivariate normal distribution. This suggested that the marginal distribution of the intercept will be a normal distribution. In our model setting, each intercepts for each hurricanes can be view as a baseline effect toward each wind speed. But, wind speed of each hurricanes are heterogeneous, and the distribution of wind speed is highly right skewed (see fig xxx), this suggested that use a prior that result in the posteria that individual level of intercepts follow a normal distribution may be invalid. This issue can be viewed as a 
 
 ```{r}
-hist(data$wind_kt)
+# hist(data$wind_kt)
 ```
 
 To predict the wind speed at $t+6$ in our model, we also include the lag 1 term $x_4$, which described the wind speed at time $t$. From previous results, the coefficient of this lag term is very close to 1, suggested that the variability in wind speed can be mainly explained by this term. Combined with other "significant" non-zero predictors, variability may be fully explained.  
 
 So, it may be proper to fit a model without the intercept term: 
+
+95% CI Intervals:
+```{r}
+load("./no_int_betasummary.Rdata")
+library(bayestestR)
+
+ci_x1 <- ci(betasummary$x1, method = "ETI", ci = 0.95)
+hat_x1 <- mean(betasummary$x1)
+
+ci_x2 <- ci(betasummary$x2, method = "ETI", ci = 0.95)
+hat_x2 <- mean(betasummary$x2)
+
+ci_x3 <- ci(betasummary$x3, method = "ETI", ci = 0.95)
+hat_x3 <- mean(betasummary$x3)
+
+ci_x4 <- ci(betasummary$x4, method = "ETI", ci = 0.95)
+hat_x4 <- mean(betasummary$x4)
+
+ci_d1 <- ci(betasummary$delta1, method = "ETI", ci = 0.95)
+hat_d1 <- mean(betasummary$delta1)
+
+ci_d2 <- ci(betasummary$delta2, method = "ETI", ci = 0.95)
+hat_d2 <- mean(betasummary$delta2)
+
+ci_d3 <- ci(betasummary$delta3, method = "ETI", ci = 0.95)
+hat_d3 <- mean(betasummary$delta3)
+
+
+ci_beta <- tibble(
+  x1 = c(ci_x1$CI_low, hat_x1, ci_x1$CI_high),
+  x2 = c(ci_x2$CI_low, hat_x2, ci_x2$CI_high),
+  x3 = c(ci_x3$CI_low, hat_x3, ci_x3$CI_high),
+  x4 = c(ci_x4$CI_low, hat_x4, ci_x4$CI_high),
+  d1 = c(ci_d1$CI_low, hat_d1, ci_d1$CI_high),
+  d2 = c(ci_d2$CI_low, hat_d2, ci_d2$CI_high),
+  d3 = c(ci_d3$CI_low, hat_d3, ci_d3$CI_high)
+) %>% t()
+
+colnames(ci_beta) = c("2.5%","Beta_hat", "97.5%")
+
+ci_beta %>% knitr::kable()
+```
+
 
 ```{r}
 #fit model here

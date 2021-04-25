@@ -217,3 +217,58 @@ ggsave("nob0_hist.jpg", summary1[[1]], path = "./figures")
 ggsave("nob0_trace.jpg", summary1[[2]], path = "./figures")
 
 save(test, file = "no_b0_results.rda")
+
+library(bayestestR)
+
+betasummary <- tibble(
+  x1 = 0,
+  x2 = 0,
+  x3 = 0,
+  x4 = 0,
+  delta1 = 0,
+  delta2 = 0,
+  delta3 = 0) %>% slice(-1)
+
+for (i in 1:length(test$beta)){
+  sub <- t(test$beta[[i]]) %>% as.data.frame()
+  names(sub) <- names(betasummary)
+  betasummary <- bind_rows(betasummary,sub)
+}
+
+save(betasummary, file = "no_int_betasummary.Rdata")
+
+ci_x1 <- ci(betasummary$x1, method = "ETI", ci = 0.95)
+hat_x1 <- mean(betasummary$x1)
+
+ci_x2 <- ci(betasummary$x2, method = "ETI", ci = 0.95)
+hat_x2 <- mean(betasummary$x2)
+
+ci_x3 <- ci(betasummary$x3, method = "ETI", ci = 0.95)
+hat_x3 <- mean(betasummary$x3)
+
+ci_x4 <- ci(betasummary$x4, method = "ETI", ci = 0.95)
+hat_x4 <- mean(betasummary$x4)
+
+ci_d1 <- ci(betasummary$delta1, method = "ETI", ci = 0.95)
+hat_d1 <- mean(betasummary$delta1)
+
+ci_d2 <- ci(betasummary$delta2, method = "ETI", ci = 0.95)
+hat_d2 <- mean(betasummary$delta2)
+
+ci_d3 <- ci(betasummary$delta3, method = "ETI", ci = 0.95)
+hat_d3 <- mean(betasummary$delta3)
+
+
+ci_beta <- tibble(
+  x1 = c(ci_x1$CI_low, hat_x1, ci_x1$CI_high),
+  x2 = c(ci_x2$CI_low, hat_x2, ci_x2$CI_high),
+  x3 = c(ci_x3$CI_low, hat_x3, ci_x3$CI_high),
+  x4 = c(ci_x4$CI_low, hat_x4, ci_x4$CI_high),
+  d1 = c(ci_d1$CI_low, hat_d1, ci_d1$CI_high),
+  d2 = c(ci_d2$CI_low, hat_d2, ci_d2$CI_high),
+  d3 = c(ci_d3$CI_low, hat_d3, ci_d3$CI_high)
+) %>% t()
+
+colnames(ci_beta) = c("2.5%","Beta_hat", "97.5%")
+
+ci_beta %>% knitr::kable()
