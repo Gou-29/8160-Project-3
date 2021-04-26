@@ -1,10 +1,139 @@
 ---
-title: "Project 3: Bayesian Modeling of Hurricane Trajectories"
-author: "Wenhao Gou, Qetsiyah Wang, Jared Klug, Michael Yan"
+title: "A Hierarchical Bayesian Model for Hurricanes Trajectories"
+author: "Wenhao Gou, Qetsiyah Wang, Jared Klug"
 output: 
   pdf_document:
     fig_caption: true
 ---
+
+# Introduction
+
+  Hierarchical Bayesian Model is the combination of two methods: Linear Regression Model in Hierarchical Form and Bayesian. Hierarchical form model is the linear regression model containing both Within-group analysis and Between-group analysis. Observations for each subject, from hierarchical form model, are usually collected with natural heterogeneity across the whole population over research time periods. This natural heterogeneity can be regarded as subject-specific mean response trajectories (i,e,. random effects) for each individual group. Nested data for each individual group violates the independent assumption for the linear regression model. Holding these individual-specific effects, the overall mean response over time across the whole research population is still considered as linearly over time, which is called Population-level effects (i.e,. fixed effects).
+  $$\underbrace{\pi(\theta| X)}_{posterior\ distribution} \propto \underbrace{\pi(X|\theta)}_{likelihood} \times \underbrace{\pi(\theta)}_{prior\ distribution} $$
+  Bayesian Inference is a statistical inference method about parameter. Before data collection, a proper prior distribution of parameter $\theta$ is set based on our belief about $\theta$. Then after data collection $\textbf{X} = (X_1, X_2,..., X_n)$, the belief of parameter $\theta$ would be updated by exploring the posterior distribution of $\theta$ based on observed data and its pre-assumed likelihood function $L(X; \theta)$. The  linear regression model in hierarchical form incorporating with Bayesian inference is implemented with Markov Chain Monte Carlo Integration algorithm for updating the parameter estimation in the final MCMC stationary phase.
+  
+# Objectives
+
+  In this project, we are going to explore whether the population-level changing trend of hurricane wind speed over years through a total of 356 groups of hurricanes. Each hurricane contained its own individual-level-specific effects. The hierarchical Bayesian model for the $\textit{i}$th hurricane is shown as
+$$Y_i(t + 6) = \beta_{0,i} + X_{i_{Month}}\beta_{1,i} + X_{i_{Year}}\beta_{2,i} + X_{i_{Type}}\beta_{3,i} + X_{i_{Y_{i,t}(t)}}\beta_{4,i,t} + \Delta_{i,t_{lat}}\beta_{5,i,t} + \Delta_{i,t_{lon}}\beta_{6,i,t} + \Delta_{i,t_{Speed}}\beta_{7,i,t} + \epsilon_i(t),$$ 
+where $i = 1,\ 2,..., m$ standing for each hurricane group and $t = 1,\ 2,..., t_i$ standing for each recorded time point within $\textit{i}$th hurricane group.
+
+  The provided hierarchical Bayesian model for hurricane trajectories for $\textit{i}$th hurricane contains 4 population-level effects (i.e,. fixed): $X_{i_{Month}}$ - the month of year when hurricane started,  $X_{i_{Year}}$ - the calender year of the hurricane, $X_{i_{Type}}$ - the type of hurricane, and 4 individual-level- effects (i.e,. random): $X_{i_{Y_{i,ti}(t)}}$ - the $\textit{i}$th wind speed at $t - 1$ time point for t time point, $\Delta_{i,t_{lat}},\ \Delta_{i,t_{lon}},\ \Delta_{i,t_{Speed}}$ - the change of latitudes, longitudes and wind speeds between two recorded time points. 4 prior information are provided as following:
+$$\boldsymbol{\beta_i} \sim N(\boldsymbol{\beta}, \Sigma^{-1}),\ \pi(\sigma^2) \propto \frac{1}{\sigma^2},$$
+$$\pi(\boldsymbol{\beta}) \propto 1,\ \pi(\boldsymbol{\Sigma}^{-1}) \propto |\boldsymbol{\Sigma|}^{-(d + 1)/2}exp(-\frac{1}{2}\boldsymbol{\Sigma}^{-1}),$$
+  Then our Hierarchical Bayesian Model for analyzing the trend of hurricane wind speed across years with considering all other covariates would be performed firstly by exploring estimated parameters from posterior distributions based on Bayes Theorem. 
+
+# Data and Methods
+
+### Hurricane Data
+
+hurricane356.csv collected the track data of 356 hurricanes in the North Atlantic area since 1989. For all the storms, their location (longitude \& latitude) and maximum wind speed were recorded every 6 hours. The data includes the following variables 
+
+1. **ID**: ID of the hurricanes
+2. **Season**: In which \textbf{year} the hurricane occurred 
+3. **Month**: In which \textbf{month} the hurricane occurred 
+4. **Nature**: Nature of the hurricane 
+  + ET: Extra Tropical
+  + DS: Disturbance
+  + NR: Not Rated
+  + SS: Sub Tropical
+  + TS: Tropical Storm
+5. **time**: dates and time of the record  
+6. **Latitude** and **Longitude**: The location of a hurricane check point 
+7. **Wind.kt** Maximum wind speed (in Knot) at each check point
+
+### Posterior Distribution Inference
+
+ We have $\beta_i = (\beta_{0,i}, \beta_{1,i},..., \beta_{7,i,t})$ associated with the $\textit{i}$th hurricane. According to the knowledge of Multivariate Linear Regression Model, we know that $Y_{i,t} \sim N(X_{i,t}\beta_{i},\ \sigma^2I_{t_i})$, denoting, $\boldsymbol{\mu}_{i,t} = \textbf{X}_{i,t}\boldsymbol{\beta_i}$, 
+  
+Then we have,
+$$\pi(\textbf{Y}_{i,t}|\boldsymbol{\mu}_{i,t}, \sigma^2, \boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1}) \propto \frac{1}{\sqrt{\sigma^2}}exp{\{-\frac{1}{2}(\textbf{Y}_{i,t} - \boldsymbol{\mu}_{i,t})^T(\sigma^2I_{t_i})^{-1}(\textbf{Y}_{i,t} - \boldsymbol{\mu}_{i,t}) \}}$$
+
+1. For $\pi(\boldsymbol{\beta_i}|.):$
+\begin{align*}
+    \pi(\boldsymbol{\beta_i}|.) &\propto f(\boldsymbol{Y_i}|\boldsymbol{\beta_i}, \sigma^2) f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1}) \\
+    &\propto \bigg(\prod^{t_i}_{t=1}\frac{1}{\sqrt{\sigma^2}}exp \{-\frac{1}{2}(\textbf{Y}_{i,t} - \boldsymbol{\mu}_{i,t})^T(\sigma^2I_{t_i})^{-1}(\textbf{Y}_{i,t} - \boldsymbol{\mu}_{i,t})\}\bigg) \bigg({|\boldsymbol{\Sigma}|^{-1/2}} \exp \{ -\frac{1}{2} (\boldsymbol{\beta_i} - \boldsymbol{\beta})^T\boldsymbol{\Sigma^{-1}}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\} \bigg) \\
+    &\propto  \exp\{-\frac{1}{2}\bigg((\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i})^T(\sigma^{-2}\boldsymbol{I}_{t_i \times t_i})(\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i}) + (\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}_{8 \times 8}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\bigg)\} 
+\end{align*}
+
+For the exponential term:
+\begin{align*}
+&\;\;\;\;(\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i})^T(\sigma^{-2}\boldsymbol{I}_{t_i \times t_i})(\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i}) + (\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}_{8 \times 8}(\boldsymbol{\beta_i} - \boldsymbol{\beta}) \\
+&  = \boldsymbol{Y_i}^T \sigma^{-2} \boldsymbol{I}\boldsymbol{Y_i}^T  + \boldsymbol{\beta_i}^T\boldsymbol{X_i}^T\sigma^{-2} \boldsymbol{I}\boldsymbol{X_i}\boldsymbol{\beta_i} - 2 \boldsymbol{Y_i}^T \sigma^{-2}\boldsymbol{I}\boldsymbol{X_i}\boldsymbol{\beta_i}  \\
+& \;\;\;\;\;+ \boldsymbol{\beta_i}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i} + \boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta} - 2\boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i} \\
+& = \boldsymbol{Y_i}^T \sigma^{-2} \boldsymbol{I}\boldsymbol{Y_i}^T + \boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta} + \boldsymbol{\beta_i}^T(\boldsymbol{\Sigma}^{-1} + \boldsymbol{X_i}^T\sigma^{-2} \boldsymbol{I}\boldsymbol{X_i})\boldsymbol{\beta_i} \\
+&\;\;\;\;\;-2(\boldsymbol{Y_i}^T\sigma^{-2}\boldsymbol{I}\boldsymbol{X_i} + \boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1})\boldsymbol{\beta_i} \\
+& = \boldsymbol{R} + \boldsymbol{\beta_i}^T\boldsymbol{V}\boldsymbol{\beta_i} - 2\boldsymbol{M}\boldsymbol{\beta_i}
+\end{align*}
+
+Where:
+\begin{align*}
+    \boldsymbol{R} &= \boldsymbol{Y_i}^T \sigma^{-2}\boldsymbol{I}_{t_i \times t_i}\boldsymbol{Y_i} + \boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta}\\
+    \boldsymbol{V} & = \boldsymbol{\Sigma}^{-1} + \sigma^{-2}\boldsymbol{X_i}^T\boldsymbol{X_i} \\
+    \boldsymbol{M} & = \sigma^{-2}\boldsymbol{X_i}^T\boldsymbol{Y_i} + \boldsymbol{\Sigma}^{-1}\boldsymbol{\beta}
+\end{align*}
+
+Then, the exponential term can be reduced to:
+$$(\boldsymbol{\beta_i} - \boldsymbol{V^{-1}M})^T\boldsymbol{V}(\boldsymbol{\beta_i} - \boldsymbol{V^{-1}M})  - \boldsymbol{M}^{T}\boldsymbol{V^{-1}}\boldsymbol{M}^{T} + \boldsymbol{R}$$
+
+We can ignore the latter 2 term as it is not related to $\boldsymbol{\beta_i}$. That indicate:
+$$\pi(\boldsymbol{\beta_i}|.) \sim N(\boldsymbol{V^{-1}M}, \boldsymbol{V^{-1}})$$
+
+2.For $\pi(\sigma^2|.):$
+\begin{align*}
+    \pi(\sigma^2|.) & \propto f(\boldsymbol{Y}|\boldsymbol{\beta_i}, \sigma^2) \cdot \pi(\sigma^2) \\
+    &\propto \bigg(\prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-1}\exp\{{-\frac{(\boldsymbol{Y}_{i,t} - \boldsymbol{\mu}_{i,t})^2}{2\sigma^2}\}} \bigg)\frac{1}{\sigma^2}\\
+    &\propto (\sigma^2)^{-1-\frac{\sum t_i}{2}}\prod^n_{i=1}\prod^{t_i}_{t=1} \exp\{{-\frac{(\boldsymbol{Y}_{i,t} - \boldsymbol{\mu}_{i,t})^2}{2\sigma^2}\}} \\
+    &\propto \sigma^{-2-\sum t_i}\exp{\{-\frac{1}{2\sigma^2}\sum^n_{i=1}\sum^{ti}_{t=1}(\boldsymbol{Y}_{i,t} - \boldsymbol{\mu}_{i,t})^2\}} 
+\end{align*}
+
+So:  
+$$\sigma^2 \sim \text{Inverse Gamma}(\frac{1}{2}\sum_{i=1}^n t_i, \frac{1}{2}\sum^n_{i=1}\sum^{ti}_{t=1}(\boldsymbol{Y}_{i,t} - \boldsymbol{\mu}_{i,t})^2)$$
+
+3. For $\pi(\boldsymbol{\Sigma}^{-1}|.)$:
+We have the prior of $\pi(\boldsymbol{\Sigma^{-1}}) \sim |\boldsymbol{\Sigma|}^{-(d+1)/2}exp(-\frac{1}{2}\boldsymbol{\Sigma}^{-1})$, which actually follows the Inverse Wishart distribution $(\boldsymbol{\Sigma^{-1}})\sim \text{Inverse Wishart}(v_0, S_0), \text{where}\ v_0 = 0, S_0 = 1$
+\begin{align*}
+    \pi(\boldsymbol{\Sigma}^{-1}|.) &\propto f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1})f(\boldsymbol{\Sigma}^{-1}) \\
+    &\propto \bigg(\prod^n_{i=1}\boldsymbol{\Sigma}^{-\frac{1}{2}} \exp\{-\frac{1}{2}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta}) \} \bigg) |\boldsymbol{\Sigma}|^{-(d-1)/2} \exp\{-\frac{1}{2}\boldsymbol{\Sigma}^{-1}\} \\
+    &\propto |\boldsymbol{\Sigma}|^{-(n+d+1)/2} \exp\{-\frac{1}{2}tr(\boldsymbol{\Sigma^{-1}})-\frac{1}{2}\sum^n_{i=1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})\} \\
+    &\propto |\boldsymbol{\Sigma}|^{-(n+d+1)/2} \exp \{ -\frac{1}{2}tr\bigg(\boldsymbol{\Sigma^{-1}}(\boldsymbol{I} + \sum_{i=1}^{n}(\boldsymbol{\beta_i}-\boldsymbol{\beta})(\boldsymbol{\beta_i}-\boldsymbol{\beta})^{T})\bigg)\}
+\end{align*}
+
+That indicates: 
+$$\boldsymbol{\Sigma}^{-1} \sim \text{Inverse Whishart}\bigg(n,\boldsymbol{I} + \sum_{i=1}^{n}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T(\boldsymbol{\beta_i}-\boldsymbol{\beta})\bigg)$$
+
+4. For $\pi(\boldsymbol{\beta}|.)$: 
+\begin{align*}
+    \pi(\boldsymbol{\beta}|.) &\propto f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1})f(\boldsymbol{\beta}) \\
+    &\propto \bigg(\prod^n_{i=1} \exp\{-\frac{1}{2}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta}) \} \bigg) \\
+    &\propto \exp \{ -\frac{1}{2}\bigg(\sum_{i = 1}^{n} (\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})\bigg)\} \\
+    &\propto \exp \{-\frac{1}{2}\bigg(\sum_{i = 1}^{n} \boldsymbol{\beta_i}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i}+\boldsymbol{\beta}^Tn\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta}-\sum_{i = 1}^{n}2\boldsymbol{\beta_i}^T\boldsymbol{\Sigma^{-1}}\boldsymbol{\beta}\bigg)\}
+\end{align*}
+
+For the exponential term, if we set: 
+\begin{align*}
+    \boldsymbol{V} &= n\boldsymbol{\Sigma}^{-1} \\
+    \boldsymbol{R} &= \sum_{i = 1}^{n} \boldsymbol{\beta_i}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i} \\
+    \boldsymbol{M} &= \sum_{i = 1}^{n}\bigg(\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i}\bigg) 
+\end{align*}
+
+Then, use the same technique when generating $\boldsymbol{\beta_i}$
+$$R + \boldsymbol{\beta}\boldsymbol{V}
+\boldsymbol{\beta} - 2\boldsymbol{M}\boldsymbol{\beta} \propto (\boldsymbol{\beta} - \boldsymbol{V}^{-1}\boldsymbol{M})^{T}\boldsymbol{V}(\boldsymbol{\beta} - \boldsymbol{V}^{-1}\boldsymbol{M})$$
+
+(NOTE: This is the same as using OLS to estimate $\boldsymbol{\beta}$ using all $\boldsymbol{\beta_i}$)
+
+That indicates: 
+
+$$\boldsymbol{\beta} \sim N \bigg(Vec(\hat{\beta_i}), \boldsymbol{\Sigma}\ \beta_i^T\beta_i\bigg),$$where $\hat{\beta_i} = (\boldsymbol{X}_{i,t}^T\boldsymbol{X}_{i,t})^{-1}\boldsymbol{X}_{i,t}^T\boldsymbol{Y}_{i,t}$.
+
+### MarKov Chain Monte Carlo
+
+  Because the hierarchical Bayesian Model exploited non-informative priors for four parameters, for decreasing uncertainties on estimations, the Gibbs Sampling method would be performed for updating four parameters from posterior distributions, $\boldsymbol{\beta_i}$, SSR ($\sum^n_{i=1}\sum^{t_i}_{t=1}(\boldsymbol{Y}_{i,t} - \boldsymbol{\mu}_{i,t})^2$), $\sigma^2$, $\boldsymbol{\Sigma}^{-1}$ and $\boldsymbol{\beta}$, in the order. Final selected iteration times was 1000 times. 
+  
+# Results
+
+  We started from the first setting of starting values of $\boldsymbol{\beta} = (\textbf{0})_{1\times 8}$, $\sigma^2 = 0.5$, and $\boldsymbol{\Sigma}^{-1}_{8 \times 8}$ is a diagonal matrix of 0.5.
 
 ```{r, include=FALSE, message=FALSE, warning=FALSE}
 library(MASS)
@@ -82,8 +211,6 @@ while (i <= length(ids)){
   }
 }
 
-
-
 # functions for all posteria:
 
 betai = function(dat, beta, sigmasq, big.sig.inv){
@@ -149,10 +276,12 @@ mcmc = function(dat, ini.beta, ini.bsig, ini.sig, niter = 1000){
   b.sig = vector("list", length = niter)
   sigma = rep(NA, niter)
   beta = vector("list", length = niter)
+  ssr = rep(NA, niter)
   
   # Initial values:
   betaobj <- betai(dat, beta = ini.beta, sigma = ini.sig, big.sig = ini.bsig)
   beta.i[[1]] <- betaobj$beta
+  ssr[1] = betaobj$ssr
   sigma[1] <- ini.sig
   beta[[1]] <- ini.beta
   b.sig[[1]] <- ini.bsig
@@ -161,147 +290,16 @@ mcmc = function(dat, ini.beta, ini.bsig, ini.sig, niter = 1000){
   for (i in 2:niter){
     betaobj <- betai(dat, beta = beta[[i-1]], sigma = sigma[i-1], big.sig = b.sig[[i-1]])
     beta.i[[i]] = betaobj$beta
-    sigma[i] = sigmasq(ssr = betaobj$ssr)
+    ssr[i] = betaobj$ssr
+    sigma[i] = sigmasq(ssr = ssr[i])
     b.sig[[i]] = bsig(betai = beta.i[[i]], beta[[i-1]])
     beta[[i]] = beta.fun(betai = beta.i[[i]], bigsig = b.sig[[i]])
     #print(sigma[[i]])
   }
-  return(list(beta.i = beta.i, sigma = sigma, b.sig = b.sig, beta = beta))
+  return(list(beta.i = beta.i, sigma = sigma, b.sig = b.sig, beta = beta, ssr = ssr))
 }
-
 ```
 
-# Introduction
-<<<<<<< HEAD
-    Hierarchical Bayesian Model is the combination of two methods: 
-    Linear Regression Model in Hierarchical Form and Bayesian Inference methods.
-=======
-    
-  Hierarchical Bayesian Model is the combination of two methods: Linear Regression Model in Hierarchical Form and Bayesian Inference methods.
->>>>>>> cba9289fa7670dcb898557df6cfbcb0e565526d4
-  
-  Hierarchical form model is the linear regression model containing both Within-group analysis and Between-group analysis. Observations for each subject, from hierarchical form model, are usually collected with natural heterogeneity across the whole population over research time periods. This natural heterogeneity can be regarded as subject-specific mean response trajectories (i,e,. random effects) for each individual group. Nested data for each individual group violates the independent assumption for the linear regression model. Holding these individual-specific effects, the overall mean response over time across the whole research population is still considered as linearly over time, which is called Population-level effects (i.e,. fixed effects).
-  $$\underbrace{\pi(\theta| X)}_{posterior\ distribution} \propto \underbrace{\pi(X|\theta)}_{likelihood} \times \underbrace{\pi(\theta)}_{prior\ distribution} $$
-  Bayesian Inference is a statistical inference method about parameter. Before data collection, a proper prior distribution of parameter $\theta$ is set based on our belief about $\theta$. Then after data collection $\textbf{X} = (X_1, X_2,..., X_n)$, the belief of parameter $\theta$ would be updated by exploring the posterior distribution of $\theta$ based on observed data and its pre-assumed likelihood function $L(X; \theta)$. The  linear regression model in hierarchical form incorporating with Bayesian inference is implemented with Markov Chain Monte Carlo Integration algorithm for updating the parameter estimation in the final MCMC stationary phase.
-
-# Objective
- In this project, we are going to explore whether the population-level changing trend of hurricane wind speed over years through a total of 356 groups of hurricanes. Each hurricane contained its own individual-level-specific effects. The hierarchical Bayesian model for the $\textit{i}$th hurricane is shown as
-$$Y_i(t + 6) = \beta_{0,i} + X_{i_{Month}}\beta_{1,i} + X_{i_{Year}}\beta_{2,i} + X_{i_{Type}}\beta_{3,i} + X_{i_{Y_{i,t}(t)}}\beta_{4,i,t} + \Delta_{i,t_{lat}}\beta_{5,i,t} + \Delta_{i,t_{lon}}\beta_{6,i,t} + \Delta_{i,t_{Speed}}\beta_{7,i,t} + \epsilon_i(t),$$ 
-where $i = 1,\ 2,..., m$ standing for each hurricane group and $t = 1,\ 2,..., t_i$ standing for each recorded time point within $\textit{i}$th hurricane group.
-
-  The provided hierarchical Bayesian model for hurricane trajectories for $\textit{i}$th hurricane contains 4 population-level effects (i.e,. fixed): $X_{i_{Month}}$ - the month of year when hurricane started,  $X_{i_{Year}}$ - the calender year of the hurricane, $X_{i_{Type}}$ - the type of hurricane, and 4 individual-level- effects (i.e,. random): $X_{i_{Y_{i,ti}(t)}}$ - the $\textit{i}$th wind speed at $t - 1$ time point for t time point, $\Delta_{i,t_{lat}},\ \Delta_{i,t_{lon}},\ \Delta_{i,t_{Speed}}$ - the change of latitudes, longitudes and wind speeds between two recorded time points. 4 prior information are provided as following:
-$$\boldsymbol{\beta_i} \sim N(\boldsymbol{\beta}, \Sigma^{-1}),\ \pi(\sigma^2) \propto \frac{1}{\sigma^2},$$
-$$\pi(\boldsymbol{\beta}) \propto 1,\ \pi(\boldsymbol{\Sigma}^{-1}) \propto |\boldsymbol{\Sigma|}^{-(d + 1)/2}exp(-\frac{1}{2}\boldsymbol{\Sigma}^{-1}),$$
-  Then our Hierarchical Bayesian Model for analyzing the trend of hurricane wind speed across years with considering all other covariates would be performed firstly by exploring estimated parameters from posterior distributions based on Bayes Theorem. 
-
-# Hurricane Data
-hurricane356.csv collected the track data of 356 hurricanes in the North Atlantic area since 1989. For all the storms, their location (longitude \& latitude) and maximum wind speed were recorded every 6 hours. The data includes the following variables 
-
-1. **ID**: ID of the hurricanes
-2. **Season**: In which \textbf{year} the hurricane occurred 
-3. **Month**: In which \textbf{month} the hurricane occurred 
-4. **Nature**: Nature of the hurricane 
-  + ET: Extra Tropical
-  + DS: Disturbance
-  + NR: Not Rated
-  + SS: Sub Tropical
-  + TS: Tropical Storm
-5. **time**: dates and time of the record  
-6. **Latitude** and **Longitude**: The location of a hurricane check point 
-7. **Wind.kt** Maximum wind speed (in Knot) at each check point 
-
-# Posterior Distribution Inference and MCMC Methods
-
-## Posterior Distribution Inference
-
- We have $\beta_i = (\beta_{0,i}, \beta_{1,i},..., \beta_{7,i,t})$ associated with the $\textit{i}$th hurricane. According to the knowledge of Multivariate Linear Regression Model, we know that $Y_{i,t} \sim N(X_{i,t}\beta_{i},\ \sigma^2I_{t_i})$, denoting, $\boldsymbol{\mu}_{i,t} = \textbf{X}_{i,t}\boldsymbol{\beta_i}$, 
-  
-Then we have,
-$$\pi(\textbf{Y}_{i,t}|\boldsymbol{\mu}_{i,t}, \sigma^2, \boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1}) \propto \frac{1}{\sqrt{\sigma^2}}exp{\{-\frac{1}{2}(\textbf{Y}_{i,t} - \boldsymbol{\mu}_{i,t})^T(\sigma^2I_{t_i})^{-1}(\textbf{Y}_{i,t} - \boldsymbol{\mu}_{i,t}) \}}$$
-
-1. For $\pi(\boldsymbol{\beta_i}|.):$
-\begin{align}
-    \pi(\boldsymbol{\beta_i}|.) &\propto f(\boldsymbol{Y_i}|\boldsymbol{\beta_i}, \sigma^2) f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1}) \\
-    &\propto \bigg(\prod^{t_i}_{t=1}\frac{1}{\sqrt{\sigma^2}}exp \{-\frac{1}{2}(\textbf{Y}_{i,t} - \boldsymbol{\mu}_{i,t})^T(\sigma^2I_{t_i})^{-1}(\textbf{Y}_{i,t} - \boldsymbol{\mu}_{i,t})\}\bigg) \bigg({|\boldsymbol{\Sigma}|^{-1/2}} \exp \{ -\frac{1}{2} (\boldsymbol{\beta_i} - \boldsymbol{\beta})^T\boldsymbol{\Sigma^{-1}}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\} \bigg) \\
-    &\propto  \exp\{-\frac{1}{2}\bigg((\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i})^T(\sigma^{-2}\boldsymbol{I}_{t_i \times t_i})(\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i}) + (\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}_{8 \times 8}(\boldsymbol{\beta_i} - \boldsymbol{\beta})\bigg)\} 
-\end{align}
-
-For the exponential term:
-\begin{align}
-&\;\;\;\;(\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i})^T(\sigma^{-2}\boldsymbol{I}_{t_i \times t_i})(\boldsymbol{Y_{i}} - \boldsymbol{X_{i}}\boldsymbol{\beta_i}) + (\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}_{8 \times 8}(\boldsymbol{\beta_i} - \boldsymbol{\beta}) \\
-&  = \boldsymbol{Y_i}^T \sigma^{-2} \boldsymbol{I}\boldsymbol{Y_i}^T  + \boldsymbol{\beta_i}^T\boldsymbol{X_i}^T\sigma^{-2} \boldsymbol{I}\boldsymbol{X_i}\boldsymbol{\beta_i} - 2 \boldsymbol{Y_i}^T \sigma^{-2}\boldsymbol{I}\boldsymbol{X_i}\boldsymbol{\beta_i}  \\
-& \;\;\;\;\;+ \boldsymbol{\beta_i}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i} + \boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta} - 2\boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i} \\
-& = \boldsymbol{Y_i}^T \sigma^{-2} \boldsymbol{I}\boldsymbol{Y_i}^T + \boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta} + \boldsymbol{\beta_i}^T(\boldsymbol{\Sigma}^{-1} + \boldsymbol{X_i}^T\sigma^{-2} \boldsymbol{I}\boldsymbol{X_i})\boldsymbol{\beta_i} \\
-&\;\;\;\;\;-2(\boldsymbol{Y_i}^T\sigma^{-2}\boldsymbol{I}\boldsymbol{X_i} + \boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1})\boldsymbol{\beta_i} \\
-& = \boldsymbol{R} + \boldsymbol{\beta_i}^T\boldsymbol{V}\boldsymbol{\beta_i} - 2\boldsymbol{M}\boldsymbol{\beta_i}
-\end{align}
-
-Where:
-\begin{align}
-    \boldsymbol{R} &= \boldsymbol{Y_i}^T \sigma^{-2}\boldsymbol{I}_{t_i \times t_i}\boldsymbol{Y_i} + \boldsymbol{\beta}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta}\\
-    \boldsymbol{V} & = \boldsymbol{\Sigma}^{-1} + \sigma^{-2}\boldsymbol{X_i}^T\boldsymbol{X_i} \\
-    \boldsymbol{M} & = \sigma^{-2}\boldsymbol{X_i}^T\boldsymbol{Y_i} + \boldsymbol{\Sigma}^{-1}\boldsymbol{\beta}
-\end{align}
-
-Then, the exponential term can be reduced to:
-$$(\boldsymbol{\beta_i} - \boldsymbol{V^{-1}M})^T\boldsymbol{V}(\boldsymbol{\beta_i} - \boldsymbol{V^{-1}M})  - \boldsymbol{M}^{T}\boldsymbol{V^{-1}}\boldsymbol{M}^{T} + \boldsymbol{R}$$
-
-We can ignore the latter 2 term as it is not related to $\boldsymbol{\beta_i}$. That indicate:
-$$\pi(\boldsymbol{\beta_i}|.) \sim N(\boldsymbol{V^{-1}M}, \boldsymbol{V^{-1}})$$
-
-2.For $\pi(\sigma^2|.):$
-\begin{align}
-    \pi(\sigma^2|.) & \propto f(\boldsymbol{Y}|\boldsymbol{\beta_i}, \sigma^2) \cdot \pi(\sigma^2) \\
-    &\propto \bigg(\prod^n_{i=1}\prod^{t_i}_{t=1} \sigma^{-1}\exp\{{-\frac{(\boldsymbol{Y}_{i,t} - \boldsymbol{\mu}_{i,t})^2}{2\sigma^2}\}} \bigg)\frac{1}{\sigma^2}\\
-    &\propto (\sigma^2)^{-1-\frac{\sum t_i}{2}}\prod^n_{i=1}\prod^{t_i}_{t=1} \exp\{{-\frac{(\boldsymbol{Y}_{i,t} - \boldsymbol{\mu}_{i,t})^2}{2\sigma^2}\}} \\
-    &\propto \sigma^{-2-\sum t_i}\exp{\{-\frac{1}{2\sigma^2}\sum^n_{i=1}\sum^{ti}_{t=1}(\boldsymbol{Y}_{i,t} - \boldsymbol{\mu}_{i,t})^2\}} 
-\end{align}
-
-So:  
-$$\sigma^2 \sim \text{Inverse Gamma}(\frac{1}{2}\sum_{i=1}^n t_i, \frac{1}{2}\sum^n_{i=1}\sum^{ti}_{t=1}(\boldsymbol{Y}_{i,t} - \boldsymbol{\mu}_{i,t})^2)$$
-
-3. For $\pi(\boldsymbol{\Sigma}^{-1}|.)$:
-We have the prior of $\pi(\boldsymbol{\Sigma^{-1}}) \sim |\boldsymbol{\Sigma|}^{-(d+1)/2}exp(-\frac{1}{2}\boldsymbol{\Sigma}^{-1})$, which actually follows the Inverse Wishart distribution $(\boldsymbol{\Sigma^{-1}})\sim \text{Inverse Wishart}(v_0, S_0), \text{where}\ v_0 = 0, S_0 = 1$
-\begin{align}
-    \pi(\boldsymbol{\Sigma}^{-1}|.) &\propto f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1})f(\boldsymbol{\Sigma}^{-1}) \\
-    &\propto \bigg(\prod^n_{i=1}\boldsymbol{\Sigma}^{-\frac{1}{2}} \exp\{-\frac{1}{2}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta}) \} \bigg) |\boldsymbol{\Sigma}|^{-(d-1)/2} \exp\{-\frac{1}{2}\boldsymbol{\Sigma}^{-1}\} \\
-    &\propto |\boldsymbol{\Sigma}|^{-(n+d+1)/2} \exp\{-\frac{1}{2}tr(\boldsymbol{\Sigma^{-1}})-\frac{1}{2}\sum^n_{i=1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})\} \\
-    &\propto |\boldsymbol{\Sigma}|^{-(n+d+1)/2} \exp \{ -\frac{1}{2}tr\bigg(\boldsymbol{\Sigma^{-1}}(\boldsymbol{I} + \sum_{i=1}^{n}(\boldsymbol{\beta_i}-\boldsymbol{\beta})(\boldsymbol{\beta_i}-\boldsymbol{\beta})^{T})\bigg)\}
-\end{align}
-
-That indicate: 
-$$\boldsymbol{\Sigma}^{-1} \sim \text{Inverse Whishart}\bigg(n,\boldsymbol{I} + \sum_{i=1}^{n}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T(\boldsymbol{\beta_i}-\boldsymbol{\beta})\bigg)$$
-
-4. For $\pi(\boldsymbol{\beta}|.)$: 
-\begin{align}
-    \pi(\boldsymbol{\beta}|.) &\propto f(\boldsymbol{\beta_i}|\boldsymbol{\beta}, \boldsymbol{\Sigma}^{-1})f(\boldsymbol{\beta}) \\
-    &\propto \bigg(\prod^n_{i=1} \exp\{-\frac{1}{2}(\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta}) \} \bigg) \\
-    &\propto \exp \{ -\frac{1}{2}\bigg(\sum_{i = 1}^{n} (\boldsymbol{\beta_i}-\boldsymbol{\beta})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\beta_i}-\boldsymbol{\beta})\bigg)\} \\
-    &\propto \exp \{-\frac{1}{2}\bigg(\sum_{i = 1}^{n} \boldsymbol{\beta_i}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i}+\boldsymbol{\beta}^Tn\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta}-\sum_{i = 1}^{n}2\boldsymbol{\beta_i}^T\boldsymbol{\Sigma^{-1}}\boldsymbol{\beta}\bigg)\}
-\end{align}
-
-For the exponential term, if we set: 
-\begin{align}
-    \boldsymbol{V} &= n\boldsymbol{\Sigma}^{-1} \\
-    \boldsymbol{R} &= \sum_{i = 1}^{n} \boldsymbol{\beta_i}^T\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i} \\
-    \boldsymbol{M} &= \sum_{i = 1}^{n}\bigg(\boldsymbol{\Sigma}^{-1}\boldsymbol{\beta_i}\bigg) 
-\end{align}
-
-Then, use the same technique when generating $\boldsymbol{\beta_i}$
-$$R + \boldsymbol{\beta}\boldsymbol{V}
-\boldsymbol{\beta} - 2\boldsymbol{M}\boldsymbol{\beta} \propto (\boldsymbol{\beta} - \boldsymbol{V}^{-1}\boldsymbol{M})^{T}\boldsymbol{V}(\boldsymbol{\beta} - \boldsymbol{V}^{-1}\boldsymbol{M})$$
-
-(NOTE: This is the same as using OLS to estimate $\boldsymbol{\beta}$ using all $\boldsymbol{\beta_i}$)
-
-That indicate: 
-
-$$\boldsymbol{\beta} \sim N \bigg(Vec(\hat{\beta_i}), \boldsymbol{\Sigma}\ \beta_i^T\beta_i\bigg)$$
-
-
-
-# Results
-
-## Test the chain with the first set of initial value
 ```{r, include=FALSE, message=FALSE, warning=FALSE}
 # Test the chain
 ### first set of initial value
@@ -338,29 +336,32 @@ summaryplotsfun <- function(input_chain){
   p1 <- betasummary %>% 
     ggplot(aes(x = val, group = var, color = var)) + 
     geom_histogram() +
-    facet_wrap(~var, nrow = 2, scales = "free")
+    facet_wrap(~var, nrow = 2, scales = "free") +
+    labs(title = "Figure.1 Estimated Coefficients for Variables (n.iter = 1000)",
+         x = "Predictors", y = "Frequency")
   
   p2 <- betasummary %>% 
     ggplot(aes(x = index, y = val, group = var, color = var)) + 
     geom_line() +
-    facet_wrap(~var, nrow = 2, scales = "free")
+    facet_wrap(~var, nrow = 2, scales = "free") +
+    labs(title = "Figure.1 Markov Chain of Estimated Coefficients for Variables (n.iter = 1000)",
+         x = "Iteration Index", y = "Values")
   
   return(list(p1=p1,p2=p2))
 }
 ```
 
-```{r}
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
 summary1 <- summaryplotsfun(test)
 summary1[[1]]
 summary1[[2]]
 ```
 
+  After testing the chain with the first set of initial values, from the density plots, we noticed that for all variables except the intercept, follow a normal distribution. From the line chart, we see that all variables converged except for the intercept. Therefore, we decided to do a warm start to see whether the problem is solved.
 
-After testing the chain with the first set of initial values, from the density plots, we noticed that for all variables except the intercept, follow a normal distribution. From the line chart, we see that all variables converged except for the intercept. Therefore, we decided to do a warm start to see whether the problem is solved.
+### Warm start
 
-
-## Test the chain with a warm start
-```{r, include=FALSE, message=FALSE, warning=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #warm start
 warm_df = read.csv("./hurrican356.csv") %>% 
   janitor::clean_names() %>% 
@@ -407,18 +408,17 @@ test2 <- mcmc(dat,
               ini.bsig = diag(1,8,8), niter = 1000)
 ```
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 summary2 <- summaryplotsfun(test2)
 summary2[[1]]
 summary2[[2]]
 ```
 
+  By doing warm start, for the intercept, it's density plot appeared to be a mixture of 2 normal distributions, suggesting that we need to subset the data. The line chart still shows no convergence. The nature of the wind speed is going up first and then going down, so we separate the data into up intervals and down intervals as one of our predictor, delta - the wind speed change between t-6 and t time points for $Y_{i,t}(t + 6)$.
 
-By doing warm start, for the intercept, it's density plot appeared to be a mixture of 2 normal distributions, suggesting that we need to subset the data. The line chart still shows no convergence. The nature of the wind speed is going up first and then going down, so we separate the data into up intervals and down intervals as one of our predictor, delta3.
+### Chain with Subsetted data
 
-
-## Test the chain with subsetted data
-```{r, include=FALSE, message=FALSE, warning=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 ###### NEW ########
 # Try subsetting the data:
 datup <- data %>% slice(1) %>% slice(-1)
@@ -543,22 +543,21 @@ downchain <- mcmc(dat,
                   ini.bsig = diag(1,8,8), niter = 5000)
 ```
 
-## Plots for upchain
-```{r}
+### Plots for upchain
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
 summaryup <- summaryplotsfun(upchain)
 summaryup[[1]]
 summaryup[[2]]
 ```
 
-## Plots for downchain
-```{r}
+### Plots for downchain
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
 summarydown <- summaryplotsfun(downchain)
 summarydown[[1]]
 summarydown[[2]]
 ```
 
-
-The “upchain” (wind speed increasing monotonically) converged in about 2000-3000 steps but the "downchain" did not seems to converge. This may due to a bad prior.
+  The “upchain” (wind speed increasing monotonically) converged in about 2000-3000 steps but the "downchain" did not seems to converge. This may due to a bad prior.
 
 ## Plots for Gibbs sampling with Intercept
 After choosing a good seed, where we see that the intercept converges to a single normal distribution after 5000 iterations, we get the following data.
@@ -567,7 +566,8 @@ After choosing a good seed, where we see that the intercept converges to a singl
 
 ![Trace of Betas](./figures/trace_beta.jpg)
 
-We get the following 95% Credibility Intervals for the estimated betas:
+  We get the following 95% Credibility Intervals for the estimated betas:
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 load("./good_int_data.Rdata")
 
@@ -616,9 +616,9 @@ ci_beta %>% knitr::kable(caption = "95% Credibility Interval of Betas")
 
 ```
 
-From table 1 we can see that month of year when the hurricane started, year of the hurricane, and  change in latitude do not have significant impacts on the estimated response as their CI's include 0 (x1, x2, and d2 respectively). Therefore we do not have evidence to support the statement that "hurricane wind speed has been increasing over years."
+  From table 1 we can see that month of year when the hurricane started, year of the hurricane, and  change in latitude do not have significant impacts on the estimated response as their CI's include 0 (x1, x2, and d2 respectively). Therefore we do not have evidence to support the statement that "hurricane wind speed has been increasing over years."
 
-We compared our models response for predicted wind speed in both the intercept and no intercept model and compared with the real. The following plots show the real trajectory with real wind speed, predicted wind speed of no intercept model, and predicted wind speed of the model with intercept for 3 Hurricanes: Allison, Dean, and Emily.
+  We compared our models response for predicted wind speed in both the intercept and no intercept model and compared with the real. The following plots show the real trajectory with real wind speed, predicted wind speed of no intercept model, and predicted wind speed of the model with intercept for 3 Hurricanes: Allison, Dean, and Emily.
 
 ![Allison Real](./figures/allison_real.jpg)
 ![Allison Pred No Intercept](./figures/allison_pred.jpg)
@@ -632,17 +632,57 @@ We compared our models response for predicted wind speed in both the intercept a
 ![Emily Real](./figures/emily_real.jpg)
 ![Emily Pred No Intercept](./figures/emily_pred.jpg)
 ![Emily Pred W/ Intercept](./figures/emily_pred_intmodel.jpg)
-From these plots we can see that the predicted wind speeds from both models are very close to what we see in the real data. The model with the intercept term tended to slightly underestimate the real wind speeds, while the model without the intercept was very on par with the real data.
+  From these plots we can see that the predicted wind speeds from both models are very close to what we see in the real data. The model with the intercept term tended to slightly underestimate the real wind speeds, while the model without the intercept was very on par with the real data.
 
-As far as how the model tracks individual hurricanes, our bayesian model sought to predict the wind speed at $t+6$, and it achieves this goal very well.
+  As far as how the model tracks individual hurricanes, our Bayesian model sought to predict the wind speed at $t+6$, and it achieves this goal very well.
+  
+### Further Discussion on MC chain:
+
+We can see that, expected for the intercept, all other variables converged in very few steps. To investigate this problem in detail, several steps are considered: 
+
+1. Create a very long chain:
+
+One potential problem lied in this may due to the fact that we do not have a long-enough chain for this variable. So, we extended our chain to 20000, and got the following plot:
+
+![Trace of Betas - long chain](./figures/longchain2.png)
+![Trace of Betas - long chain](./figures/longchain1.png)
+
+We can see that, the intercept still diverged, and appeared as a two-peak normal distribution. This suggested that some other parts in the model itself is questionable.
+
+2. Investigate the models root mean square error:
+
+Though the intercept do not converge, we can use other methods to see whether the whole model converged. To do so, we would reconfirm with SSR. If the SSR converged after some steps, it may be proper to say that our chain converged. 
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=5}
+
+test3 = test <- mcmc(dat, 
+             ini.beta = c(50,rep(0,7)), 
+             ini.sig = .5, 
+             ini.bsig = diag(.5,8,8), niter = 20000)
+ssri = cbind(c(1:20000), test$ssr) %>% as.data.frame()
+plot1 = ggplot(aes(x = V1, y = V2), data = ssri) +
+  geom_line() +
+  labs(title = "Markov Chain of SSR values", 
+       x = "Iteration Index",
+       y = "SSR") +
+  theme_bw()
+
+plot2 = ggplot(aes(x = V2), data = ssri) +
+  geom_histogram() +
+  labs(title = "Markov Chain of SSR values", 
+       x = "SSR",
+       y = "Frequency") +
+  theme_bw()
+```
+
+We can see that, SSR is normally distributed and converged. This suggested that our model is actually converged. 
 
 # Discussion and Conclusions
 
-In this project, we constructed a hierarchical Bayesian model to predict the wind speeds of hurricanes. Because we were able to derive the conditional distributions we achieved this model by implementing a gibbs sampling algorithm for 5000 iterations. Originally we implemented this algorithm with 7 predictors and the intercept. All predictors had converged within these 5000 iterations, however the intercept value did not. We then implemented the same algorithm without the intercept and we had all predictors converge again within the 5000 iterations. We compared the results of the models with and without the intercepts. The results showed that our models gave us a set of adequate predicted values. 
+In this project, we constructed a hierarchical Bayesian model to predict the wind speeds of hurricanes. Because we were able to derive the conditional distributions we achieved this model by implementing a gibbs sampling algorithm for 1000 iterations. Originally we implemented this algorithm with 7 predictors and the intercept. All predictors had converged within these 1000 iterations, however the intercept value did not. We then implemented the same algorithm without the intercept and we had all predictors converge again within the 1000 iterations. We compared the results of the models with and without the intercepts. The results showed that our models gave us a set of adequate predicted values. 
 
 By plotting the predicted wind speed values on the same trajectories as the real data, we can see that for both the non-intercept and intercept model, both were able to achieve very close results to the real observed values. 
 
-We ran 5000 iterations to obtain the model, however, we might need to construct the full model with more iterations. We set the number to be 5000 because we want to check the performance of the chain efficiently and see if all the variables converge. Also, more combinations of initial values should be tested to achieve optimal performance. Further research should be done on why the intercept is not converging.
+We ran 1000 iterations to obtain the model, however, we might need to construct the full model with more iterations. We set the number to be 1000 because we want to check the performance of the chain efficiently and see if all the variables converge. Also, more combinations of initial values should be tested to achieve optimal performance. Further research should be done on why the intercept is not converging.
 
 To improve the model, we suggest trying MH algorithm in the future to update the parameters. One should also consider
 calculating the accept rate periodically during the iterations process to make sure the modeling process is on the right track. In addition, in this study, we excluded records with times that's not in 00:00:00, 06:00:00, 12:00:00, 18:00:00. Further work should be done on this matter to minimize the data wasting and to study how to better accommodate different time intervals.
